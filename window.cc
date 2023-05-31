@@ -61,9 +61,10 @@ Window::Window(QApplication *parent) :
 void Window::open(bool clear_others) {
   auto filename =
     QFileDialog::getOpenFileName(this, tr("Open File"), last_directory,
-                                 tr("Readable files (*.obj *.ply *.stl *.bzr);;"
+                                 tr("Readable files (*.obj *.ply *.stl *.bzr *.sp);;"
                                     "Mesh (*.obj *.ply *.stl);;"
                                     "Bézier surface (*.bzr);;"
+                                    "S-Patch surface (*.sp);;"
                                     "All files (*.*)"));
   if (filename.isEmpty())
     return;

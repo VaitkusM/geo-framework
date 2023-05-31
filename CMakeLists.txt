@@ -59,6 +59,8 @@ add_executable(geo-framework WIN32
   viewer.cc
   visualization.cc
   window.cc
+  npatch.cc
+  spatch.cc
   )
 
 if(WITH_JET_FITTING)

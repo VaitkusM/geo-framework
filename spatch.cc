@@ -1,0 +1,219 @@
+#include "spatch.hh"
+
+#include <fstream>
+
+SPatch::SPatch(std::string filename) : NPatch(filename)
+{
+  reload();
+}
+
+SPatch::~SPatch() {
+
+}
+
+bool 
+SPatch::reload()
+{
+  std::ifstream f(filename);
+  f.exceptions(std::ios::failbit | std::ios::badbit);
+  f >> n_ >> d_;
+  size_t n_cp = binomial(n_ + d_ - 1, d_);
+  Index index(n_);
+  for (size_t i = 0; i < n_cp; ++i) {
+    for (size_t j = 0; j < n_; ++j) {
+      f >> index[j];
+    }
+    Vector p;
+    for (size_t j = 0; j < 3; ++j) {
+      f >> p[j];
+    }
+    setControlPoint(index, p);
+  }
+  initDomain();
+  updateBaseMesh();
+  return true;
+}
+
+void 
+SPatch::initDomain()
+{
+  double alpha = 2.0 * M_PI / n_;
+  vertices_.resize(n_);
+  for (size_t i = 0; i < n_; ++i) {
+    vertices_[i] = Vector(std::cos(alpha * i), std::sin(alpha * i), 0.0);
+  }
+
+  initDomainMesh();
+}
+
+void 
+SPatch::initDomainMesh(size_t resolution)
+{
+  domain_mesh.clear();
+
+  std::vector<BaseMesh::VertexHandle> handles;
+  size_t meshSize = 1 + n_ * resolution * (resolution + 1) / 2;
+  handles.reserve(meshSize);
+
+  // Adding vertices
+  Vector center = Vector(0.0, 0.0, 0.0);
+  handles.push_back(domain_mesh.add_vertex(center));
+  for (size_t j = 1; j <= resolution; ++j) {
+    double u = (double)j / (double)resolution;
+    for (size_t k = 0; k < n_; ++k) {
+      for (size_t i = 0; i < j; ++i) {
+        double v = (double)i / (double)j;
+        Vector ep = vertices_[prev(k)] * (1.0 - v) + vertices_[k] * v;
+        Vector p = center * (1.0 - u) + ep * u;
+        handles.push_back(domain_mesh.add_vertex(p));
+      }
+    }
+  }
+
+  //Adding triangles
+  size_t inner_start = 0, outer_vert = 1;
+  for (size_t layer = 1; layer <= resolution; ++layer) {
+    size_t inner_vert = inner_start, outer_start = outer_vert;
+    for (size_t side = 0; side < n_; ++side) {
+      size_t vert = 0;
+      while(true) {
+        size_t next_vert = (side == n_ - 1 && vert == layer - 1) ? outer_start : (outer_vert + 1);
+        domain_mesh.add_face(handles[inner_vert], handles[outer_vert], handles[next_vert]);
+        ++outer_vert;
+        if (++vert == layer)
+          break;
+        size_t inner_next = (side == n_ - 1 && vert == layer - 1) ? inner_start : (inner_vert + 1);
+        domain_mesh.add_face(handles[inner_vert], handles[next_vert], handles[inner_next]);
+        inner_vert = inner_next;
+      }
+    }
+    inner_start = outer_start;
+  }
+
+}
+
+double 
+SPatch::getGBC(double u, double v, size_t i, BarycentricType type) const
+{
+  std::vector<Vector> vectors; vectors.reserve(n_);
+  std::transform(vertices_.begin(), vertices_.end(),
+                 std::back_inserter(vectors),
+                 [u,v](const Vector &p)->Vector { return Vector(u,v,0) - p; });
+
+  DoubleVector areas; areas.reserve(n_);
+  for (size_t i = 0; i < n_; ++i) {
+    const Vector &si = vectors[i];
+    const Vector &si1 = vectors[next(i)];
+    areas.push_back((si[0] * si1[1] - si[1] * si1[0]) / 2.0);
+  }
+
+  DoubleVector l; l.reserve(n_);
+
+  for (size_t i = 0; i < n_; ++i) {
+    size_t i_1 = prev(i), i1 = next(i);
+    double Ai = 1.0, Ai_1 = 1.0, Ai_1i = 1.0;
+    for (size_t j = 0; j < n_; ++j) {
+      if (j == i)
+        Ai_1 *= areas[j];
+      else if (j == i_1)
+        Ai *= areas[j];
+      else {
+        Ai_1 *= areas[j];
+        Ai *= areas[j];
+        Ai_1i *= areas[j];
+      }
+    }
+    const Vector &si_1 = vectors[i_1];
+    const Vector &si1 = vectors[i1];
+    double Bi = (si_1[0] * si1[1] - si_1[1] * si1[0]) / 2.0;
+    double ri_1 = 1.0, ri = 1.0, ri1 = 1.0;
+    switch (type) {
+    case BarycentricType::WACHSPRESS:
+      break;
+    case BarycentricType::MEAN_VALUE:
+      ri_1 = vectors[i_1].norm();
+      ri = vectors[i].norm();
+      ri1 = vectors[i1].norm();
+      break;
+    case BarycentricType::HARMONIC:
+      ri_1 = vectors[i_1].sqrnorm();
+      ri = vectors[i].sqrnorm();
+      ri1 = vectors[i1].sqrnorm();
+      break;
+    };
+    if (ri < epsilon) {         // at a vertex of the domain (mean/harmonic)
+      l.assign(n_, 0.0);
+      l[i] = 1.0;
+      break;
+    }
+    l.push_back(ri_1 * Ai_1 + ri1 * Ai - ri * Bi * Ai_1i);
+  }
+
+  double sum = std::accumulate(l.begin(), l.end(), 0.0);
+  std::transform(l.begin(), l.end(), l.begin(), [sum](double x) { return x / sum; });
+  return l[i];
+}
+
+Vector 
+SPatch::evaluateAtParam(double u, double v) const
+{
+  std::vector<double> bc(n_);
+  for(size_t i = 0; i < n_; ++i) {
+    bc[i] = getGBC(u, v, i);
+  }
+  Vector p(0,0,0);
+  for (const auto &cp : net_) {
+    p += cp.second * multiBernstein(cp.first, bc);
+  }
+  return p;
+}
+
+size_t
+SPatch::binomial(size_t n, size_t k) {
+  if (k > n)
+    return 0;
+  size_t result = 1;
+  for (size_t d = 1; d <= k; ++d, --n)
+    result = result * n / d;
+  return result;
+}
+
+size_t 
+SPatch::multinomial(const Index &index) {
+  auto fact = [](size_t n) { return (size_t)std::lround(std::tgamma(n + 1)); };
+  size_t numerator = 0, denominator = 1;
+  for (auto i : index) {
+    numerator += i;
+    denominator *= fact(i);
+  }
+  return fact(numerator) / denominator;
+}
+
+double 
+SPatch::multiBernstein(const Index &index, const DoubleVector &bc) {
+  double result = multinomial(index);
+  for (size_t i = 0; i < index.size(); ++i)
+    result *= std::pow(bc[i], index[i]);
+  return result;
+}
+
+void
+SPatch::setControlPoint(const Index &i, const Vector &p) {
+  net_[i] = p;
+}
+
+void 
+SPatch::drawWithNames(const Visualization &vis) const
+{
+
+}
+
+Vector SPatch::postSelection(int selected) 
+{
+  return {0.0, 0.0, 0.0};
+}
+
+void SPatch::movement(int selected, const Vector &pos)
+{
+
+}
