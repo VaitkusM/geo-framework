@@ -10,7 +10,6 @@ public:
   enum class BarycentricType { WACHSPRESS, MEAN_VALUE, HARMONIC };
 
   NPatch(std::string filename, size_t num_sides = 0);
-  NPatch(size_t num_sides);
   virtual ~NPatch();
   virtual void updateBaseMesh() override;
 
