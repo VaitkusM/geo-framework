@@ -6,9 +6,7 @@
 
 class SPatch : public NPatch {
 public:
-  using DoubleVector = std::vector<double>;
   using Index = std::vector<size_t>;
-  enum class BarycentricType { WACHSPRESS, MEAN_VALUE, HARMONIC };
 
   SPatch(std::string filename);
   SPatch(size_t num_sides, size_t depth);
@@ -25,8 +23,6 @@ public:
   virtual void movement(int selected, const Vector &pos) override;
 
   virtual void setControlPoint(const Index &index, const Vector& p);
-
-  double getGBC(double u, double v, size_t i, BarycentricType type = BarycentricType::WACHSPRESS) const;
 
   static size_t binomial(size_t n, size_t k);
   static size_t multinomial(const Index &index);

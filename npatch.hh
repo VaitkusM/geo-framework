@@ -6,6 +6,8 @@ class NPatch : public Object
 {
 public:
   const double epsilon = 1.0e-8;
+  using DoubleVector = std::vector<double>;
+  enum class BarycentricType { WACHSPRESS, MEAN_VALUE, HARMONIC };
 
   NPatch(std::string filename, size_t num_sides = 0);
   NPatch(size_t num_sides);
@@ -17,6 +19,8 @@ public:
   virtual Vector evaluateAtParam(double u, double v) const = 0;
 
   void generateSpiderMesh(size_t resolution, BaseMesh &mesh);
+
+  double getGBC(double u, double v, size_t i, BarycentricType type = BarycentricType::WACHSPRESS) const;
 
   size_t next(size_t i, size_t j = 1) const { return (i + j) % n_; }
   size_t prev(size_t i, size_t j = 1) const { return (i + n_ - j) % n_; }
