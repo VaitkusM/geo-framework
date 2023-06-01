@@ -65,7 +65,7 @@ void Viewer::deleteObjects() {
 bool Viewer::open(std::string filename) {
   std::shared_ptr<Object> surface;
   if (filename.ends_with(".sp"))
-    surface = std::make_shared<SPatch>(5,3);
+    surface = std::make_shared<SPatch>(5,5);
   else if(filename.ends_with(".bzr")) {
     surface = std::make_shared<Bezier>(filename);
   }

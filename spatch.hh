@@ -35,10 +35,6 @@ public:
   
   std::vector<Index> neighbors(const Index& si) const;
   
-  size_t next(size_t i, size_t j = 1) const { return (i + j) % n_; }
-  size_t prev(size_t i, size_t j = 1) const { return (i + n_ - j) % n_; }
-  
-  size_t n_;
   size_t d_;
   std::map<Index, Vector> net_;
 };
