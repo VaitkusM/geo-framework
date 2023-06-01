@@ -65,7 +65,7 @@ void Viewer::deleteObjects() {
 bool Viewer::open(std::string filename) {
   std::shared_ptr<Object> surface;
   if (filename.ends_with(".sp"))
-    surface = std::make_shared<SPatch>(filename);
+    surface = std::make_shared<SPatch>(5,3);
   else if(filename.ends_with(".bzr")) {
     surface = std::make_shared<Bezier>(filename);
   }
@@ -254,6 +254,16 @@ void Viewer::keyPressEvent(QKeyEvent *e) {
       break;
     case Qt::Key_W:
       vis.show_wireframe = !vis.show_wireframe;
+      update();
+      break;
+    case Qt::Key_B:
+      for (auto o : objects) {
+        if(QString(o->get_filename().c_str()).endsWith(".sp")) {
+          o->selected_idx++;
+          o->updateBaseMesh();
+          displayMessage(QString("Selected idx: ") + QString::number(o->selected_idx));
+        }
+      }
       update();
       break;
     default:

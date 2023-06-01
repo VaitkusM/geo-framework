@@ -165,3 +165,4 @@ double Object::meanCurvature(BaseMesh::VertexHandle vh) const {
 bool Object::valid() const {
   return mesh.n_vertices() > 0;
 }
+

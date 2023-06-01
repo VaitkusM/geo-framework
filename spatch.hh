@@ -11,6 +11,7 @@ public:
   enum class BarycentricType { WACHSPRESS, MEAN_VALUE, HARMONIC };
 
   SPatch(std::string filename);
+  SPatch(size_t num_sides, size_t depth);
   virtual ~SPatch();
 
   virtual void initDomain() override;
@@ -18,6 +19,7 @@ public:
   virtual Vector evaluateAtParam(double u, double v) const override;
   virtual bool reload() override;
 
+  virtual void draw(const Visualization &vis) const override;
   virtual void drawWithNames(const Visualization &vis) const override;
   virtual Vector postSelection(int selected) override;
   virtual void movement(int selected, const Vector &pos) override;
@@ -29,7 +31,14 @@ public:
   static size_t binomial(size_t n, size_t k);
   static size_t multinomial(const Index &index);
   static double multiBernstein(const Index &index, const DoubleVector &bc);
-
+  static std::vector<Index> indices(size_t n, size_t d);
+  
+  std::vector<Index> neighbors(const Index& si) const;
+  
+  size_t next(size_t i, size_t j = 1) const { return (i + j) % n_; }
+  size_t prev(size_t i, size_t j = 1) const { return (i + n_ - j) % n_; }
+  
+  size_t n_;
   size_t d_;
   std::map<Index, Vector> net_;
 };

@@ -15,6 +15,8 @@ public:
   virtual void updateBaseMesh();
   virtual bool reload() = 0;
   bool valid() const;
+  const std::string& get_filename() const { return filename; };
+  size_t selected_idx = 0;
 protected:
   void updateBaseMesh(bool own_normal, bool own_mean);
   virtual Vector normal(BaseMesh::VertexHandle vh) const;
