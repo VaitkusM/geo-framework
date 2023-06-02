@@ -21,6 +21,7 @@ public:
 
   double getGBC(double u, double v, size_t i, BarycentricType type = BarycentricType::WACHSPRESS) const;
 
+
   static void normalizeValues(DoubleVector& values);
 
   size_t next(size_t i, size_t j = 1) const { return (i + j) % n_; }

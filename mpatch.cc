@@ -27,7 +27,7 @@ MPatch::MPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_sides)
   }
 
   for(auto& p : net_) {
-    p.second[2] = 1.0 - p.second[0]*p.second[0] + p.second[1]*p.second[1];
+    p.second[2] = 1.0 - p.second[0]*p.second[0] - p.second[1]*p.second[1];
   }
 
   std::cerr << "Number of CPs:" << net_.size() << std::endl;

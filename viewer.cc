@@ -1,5 +1,6 @@
 #include <QtGui/QKeyEvent>
 
+#include "gbpatch.hh"
 #include "mpatch.hh"
 #include "spatch.hh"
 #include "bezier.hh"
