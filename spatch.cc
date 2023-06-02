@@ -5,6 +5,8 @@
 SPatch::SPatch(std::string filename) : NPatch(filename)
 {
   reload();
+  
+  std::cerr << "Number of CPs:" << net_.size() << std::endl;
 }
 
 SPatch::SPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_sides), d_(depth)
@@ -25,6 +27,8 @@ SPatch::SPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_sides)
   }
   
   updateBaseMesh();
+
+  std::cerr << "Number of CPs:" << net_.size() << std::endl;
 }
 
 SPatch::~SPatch() {
