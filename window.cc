@@ -7,7 +7,7 @@
 Window::Window(QApplication *parent) :
   QMainWindow(), parent(parent), last_directory(".")
 {
-  setWindowTitle(tr("Geometry Framework"));
+  setWindowTitle(tr("N-Patch Explorer"));
   setStatusBar(new QStatusBar);
   progress = new QProgressBar;
   progress->setMinimum(0); progress->setMaximum(100);

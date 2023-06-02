@@ -14,7 +14,7 @@ public:
   virtual ~MPatch();
 
   virtual void initDomain() override;
-  virtual void initDomainMesh(size_t resolution = 30) override;
+  virtual void initDomainMesh(size_t resolution = 60) override;
   virtual Vector evaluateAtParam(double u, double v) const override;
   virtual bool reload() override;
 
@@ -31,7 +31,7 @@ public:
   double getBlendFunctionUnnormalized(double u, double v, const Index &i) const;
 
   std::vector<Index> neighbors(const Index& si) const;
-  
+
   virtual void setControlPoint(const Index& index, const Vector& p);
 
   size_t d_;

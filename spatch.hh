@@ -13,7 +13,7 @@ public:
   virtual ~SPatch();
 
   virtual void initDomain() override;
-  virtual void initDomainMesh(size_t resolution = 30) override;
+  virtual void initDomainMesh(size_t resolution = 60) override;
   virtual Vector evaluateAtParam(double u, double v) const override;
   virtual bool reload() override;
 

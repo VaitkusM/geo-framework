@@ -123,7 +123,7 @@ SPatch::multinomial(const Index &index)
 double 
 SPatch::multiBernstein(const Index &index, const DoubleVector &bc) 
 {
-  double result = multinomial(index);
+  auto result = static_cast<double>(multinomial(index));
   for (size_t i = 0; i < index.size(); ++i)
     result *= std::pow(bc[i], index[i]);
   return result;
@@ -255,18 +255,43 @@ void SPatch::draw(const Visualization &vis) const
   }
 }
 
-void 
-SPatch::drawWithNames(const Visualization &vis) const
+void
+SPatch::drawWithNames(const Visualization& vis) const
 {
-
+  if (!vis.show_control_points) {
+    return;
+  }
+  size_t i = 0;
+  for (const auto& p : net_) {
+    glPushName(static_cast<GLuint>(i));
+    glRasterPos3dv(p.second.data());
+    glPopName();
+    ++i;
+  }
 }
 
-Vector SPatch::postSelection(int selected) 
+Vector
+SPatch::postSelection(int selected)
 {
-  return {0.0, 0.0, 0.0};
+  size_t i = 0;
+  for (const auto& p : net_) {
+    if (i == selected) {
+      return p.second;
+    }
+    ++i;
+  }
+  return Vector(0, 0, 0);
 }
 
-void SPatch::movement(int selected, const Vector &pos)
+void
+SPatch::movement(int selected, const Vector& pos)
 {
-
+  size_t i = 0;
+  for (auto& p : net_) {
+    if (i == selected) {
+      p.second = pos;
+      break;
+    }
+    ++i;
+  }
 }
