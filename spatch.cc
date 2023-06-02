@@ -10,6 +10,7 @@ SPatch::SPatch(std::string filename) : NPatch(filename)
 SPatch::SPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_sides), d_(depth)
 {
   initDomain();
+
   auto ids = indices(num_sides, depth);
   for(auto id : ids) {
     Vector pt(0.0, 0.0, 0.0);
@@ -18,6 +19,11 @@ SPatch::SPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_sides)
     }
     net_[id] = pt;
   }
+
+  for (auto& p : net_) {
+    p.second[2] = 1.0 - p.second[0] * p.second[0] + p.second[1] * p.second[1];
+  }
+  
   updateBaseMesh();
 }
 
@@ -69,7 +75,7 @@ SPatch::initDomainMesh(size_t resolution)
 Vector 
 SPatch::evaluateAtParam(double u, double v) const
 {
-  const bool basis_fcn = true;
+  const bool basis_fcn = false;
   
   std::vector<double> bc(n_);
   for(size_t i = 0; i < n_; ++i) {

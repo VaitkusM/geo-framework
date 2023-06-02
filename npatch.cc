@@ -1,4 +1,5 @@
 #include "npatch.hh"
+#include <functional>
 
 NPatch::NPatch(std::string filename, size_t num_sides) : Object(filename), n_(num_sides)
 {
@@ -122,7 +123,23 @@ NPatch::getGBC(double u, double v, size_t i, BarycentricType type) const
     l.push_back(ri_1 * Ai_1 + ri1 * Ai - ri * Bi * Ai_1i);
   }
 
-  double sum = std::accumulate(l.begin(), l.end(), 0.0);
-  std::transform(l.begin(), l.end(), l.begin(), [sum](double x) { return x / sum; });
-  return l[i];
+  normalizeValues(l);
+  
+  if (i >= n_) {
+    double prod = 1.0;
+    double dl = (vectors[1] - vectors[0]).norm();
+    for (auto a : areas) {
+      prod *= a/dl;
+    }
+    return prod;
+  }
+  else {
+    return l[i];
+  }
+}
+
+void NPatch::normalizeValues(DoubleVector& values)
+{
+  double sum = std::accumulate(values.begin(), values.end(), 0.0);
+  std::transform(values.begin(), values.end(), values.begin(), [sum](double x) { return x / sum; });
 }

@@ -1,5 +1,6 @@
 #include <QtGui/QKeyEvent>
 
+#include "mpatch.hh"
 #include "spatch.hh"
 #include "bezier.hh"
 #include "mesh.hh"
@@ -64,15 +65,18 @@ void Viewer::deleteObjects() {
 
 bool Viewer::open(std::string filename) {
   std::shared_ptr<Object> surface;
-  if (filename.ends_with(".sp"))
+  if (filename.ends_with(".sp")) {
     surface = std::make_shared<SPatch>(5,5);
+  }
   else if(filename.ends_with(".bzr")) {
     surface = std::make_shared<Bezier>(filename);
   }
-  else
+  else {
     surface = std::make_shared<Mesh>(filename);
-  if (!surface->valid())
+  }
+  if (!surface->valid()) {
     return false;
+  }
   objects.push_back(surface);
   updateMeanMinMax();
   setupCamera();
@@ -112,8 +116,36 @@ void Viewer::init() {
 }
 
 void Viewer::draw() {
-  for (auto o : objects)
+  for (auto o : objects) {
     o->draw(vis);
+    if(false && o->get_filename().ends_with(".sp")) {
+      // drawArrow({ 0.0, 0.0, 0.0 }, { 1.0, 0.0, 0.0 });
+      // drawArrow({ 0.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 });
+      // drawArrow({ 0.0, 0.0, 0.0 }, { 0.0, 0.0, 1.0 });
+      auto omp = std::static_pointer_cast<MPatch>(o);
+      for(auto cp: omp->net_) {
+        auto pt = cp.second.data();
+        auto idx = cp.first;
+        qglviewer::Vec screenPos =
+          camera()->projectedCoordinatesOf(qglviewer::Vec(pt[0], pt[1], pt[2]));
+        QString text("(");
+        for(size_t i = 0; i < idx.size(); ++i) {
+          text+= QString::number(idx[i]) + (i < (idx.size() - 1) ? "," : ")");
+        }
+        drawText((int)screenPos[0], (int)screenPos[1], text);
+      }
+      // for(auto vt : omp->baseMesh().vertices()) {
+      //   auto pt = omp->baseMesh().point(vt);
+      //   qglviewer::Vec screenPos =
+      //     camera()->projectedCoordinatesOf(qglviewer::Vec(pt[0], pt[1], pt[2]));
+      //   QString text("(");
+      //   for (size_t i = 0; i < pt.size(); ++i) {
+      //     text += QString::number(pt[i]) + (i < (pt.size() - 1) ? "," : ")");
+      //   }
+      //   drawText((int)screenPos[0], (int)screenPos[1], text);
+      // }
+    }
+  }
 
   if (axes.shown) {
     using qglviewer::Vec;
@@ -142,7 +174,7 @@ void Viewer::drawWithNames() {
     glPopName();
   } else {
     for (size_t i = 0; i < objects.size(); ++i) {
-      glPushName(i);
+      glPushName(static_cast<GLuint>(i));
       objects[i]->drawWithNames(vis);
       glPopName();
     }
@@ -261,7 +293,10 @@ void Viewer::keyPressEvent(QKeyEvent *e) {
         if(QString(o->get_filename().c_str()).endsWith(".sp")) {
           o->selected_idx++;
           o->updateBaseMesh();
+          //setupCamera();
           displayMessage(QString("Selected idx: ") + QString::number(o->selected_idx));
+          auto pt = std::static_pointer_cast<MPatch>(o)->evaluateAtParam(0, 0);
+          displayMessage("Value at (0,0): " + QString::number(pt[2]) + "");
         }
       }
       update();
