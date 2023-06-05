@@ -11,7 +11,6 @@ GBPatch::GBPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_side
 
   net_.clear();
   Vector center = Vector(0.0, 0.0, 0.0);
-  central_cp = center;
   net_[{n_, 0, 0}] = center; 
   for (size_t i = 0; i < n_; ++i) {
     auto cim2 = vertices_[prev(prev(i))];
@@ -22,11 +21,11 @@ GBPatch::GBPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_side
     auto ql00 = cim1;
     auto ql01 = 0.5 * (cim1 + ci);
     auto ql10 = 0.5 * (cim2 + cim1);
-    auto ql11 = central_cp;
+    auto ql11 = center;
     auto qr00 = ci;
     auto qr01 = 0.5 * (cim1 + ci);
     auto qr10 = 0.5 * (cip1 + ci);
-    auto qr11 = central_cp;
+    auto qr11 = center;
 
     auto cp00 = ql00;
     auto cp01 = 1.0 / 3.0 * ql00 + 2.0 / 3.0 * ql01;
@@ -50,14 +49,7 @@ GBPatch::GBPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_side
 
   footpoints_ = net_;
 
-  for(auto& [id,p] : net_) {
-    p[2] = 1.0 - p[0] * p[0] - p[1] * p[1];
-  }
-  central_cp[2] = 1.0 - central_cp[0] * central_cp[0] - central_cp[1] * central_cp[1];
-
-  // for (auto& p : net_) {
-  //     p.second[2] = 1.0 - p.second[0] * p.second[0] + p.second[1] * p.second[1];
-  // }
+  initBasicShape();
 
   // std::cerr << "Number of CPs:" << net_.size() << std::endl;
 
@@ -74,6 +66,19 @@ GBPatch::reload()
   initDomain();
   updateBaseMesh();
   return true;
+}
+
+void
+GBPatch::initBasicShape()
+{
+  for (auto& [id, p] : net_) {
+    if (basic_shape_type == BasicShapeType::PARABOLOID) {
+      p[2] = 1.0 - p[0] * p[0] - p[1] * p[1];
+    }
+    else if (basic_shape_type == BasicShapeType::HYPERBOLOID) {
+      p[2] = 1.0 - p[0] * p[0] + p[1] * p[1];
+    }
+  }
 }
 
 void

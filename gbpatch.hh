@@ -11,6 +11,7 @@ public:
   GBPatch(size_t num_sides, size_t num_layers);
   virtual ~GBPatch();
 
+  virtual void initBasicShape() override;
   virtual void initDomain() override;
   virtual void initDomainMesh(size_t resolution = 60) override;
   virtual Vector evaluateAtParam(double u, double v) const override;
@@ -34,6 +35,5 @@ public:
   size_t d_;
   std::map<Index, Vector> footpoints_;
   std::map<Index, Vector> net_;
-  Vector central_cp;
   bool normalized;
 };

@@ -13,6 +13,7 @@ public:
   MPatch(size_t num_sides, size_t depth);
   virtual ~MPatch();
 
+  virtual void initBasicShape() override;
   virtual void initDomain() override;
   virtual void initDomainMesh(size_t resolution = 60) override;
   virtual Vector evaluateAtParam(double u, double v) const override;

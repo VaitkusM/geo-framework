@@ -2,6 +2,7 @@
 
 #include <QtWidgets>
 
+#include "npatch.hh"
 #include "window.hh"
 
 Window::Window(QApplication *parent) :
@@ -68,6 +69,14 @@ Window::Window(QApplication *parent) :
   showBlendFcnAction->setChecked(false);
   connect(showBlendFcnAction, &QAction::triggered, viewer, &Viewer::setShowBlendFunction);
 
+  auto setBasicShapeTypeParaboloidAction = new QAction(tr("Paraboloid"), this);
+  setBasicShapeTypeParaboloidAction->setCheckable(true);
+  connect(setBasicShapeTypeParaboloidAction, &QAction::triggered, viewer, &Viewer::setBasicShapeTypeParaboloid);
+
+  auto setBasicShapeTypeHyperboloidAction = new QAction(tr("Hyperboloid"), this);
+  setBasicShapeTypeHyperboloidAction->setCheckable(true);
+  connect(setBasicShapeTypeHyperboloidAction, &QAction::triggered, viewer, &Viewer::setBasicShapeTypeHyperboloid);
+
   auto fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(openAction);
   fileMenu->addAction(importAction);
@@ -85,6 +94,17 @@ Window::Window(QApplication *parent) :
   patchMenu->addSeparator();
   patchMenu->addAction(showBlendFcnAction);
 
+  auto surfacetypeGroup = new QActionGroup(this);
+  surfacetypeGroup->setExclusive(true);
+  surfacetypeGroup->addAction(setBasicShapeTypeParaboloidAction);
+  surfacetypeGroup->addAction(setBasicShapeTypeHyperboloidAction);
+  setBasicShapeTypeParaboloidAction->setChecked(true);
+  setBasicShapeTypeHyperboloidAction->setChecked(false);
+
+  patchMenu->addSeparator();
+  auto typeMenu = patchMenu->addMenu("Basic shape type");
+  typeMenu->addAction(setBasicShapeTypeParaboloidAction);
+  typeMenu->addAction(setBasicShapeTypeHyperboloidAction);
 }
 
 void Window::open(bool clear_others) {

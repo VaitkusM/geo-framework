@@ -33,6 +33,9 @@ public:
   
   void setShowBlendFunction(bool value);
 
+  void setBasicShapeTypeParaboloid(bool value);
+  void setBasicShapeTypeHyperboloid(bool value);
+
   void incrementIdxForAll();
   void incrementIdx(const QString&);
 

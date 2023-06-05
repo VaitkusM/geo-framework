@@ -8,11 +8,14 @@ public:
   const double epsilon = 1.0e-8;
   using DoubleVector = std::vector<double>;
   enum class BarycentricType { WACHSPRESS, MEAN_VALUE, HARMONIC };
+  enum class BasicShapeType {PARABOLOID, HYPERBOLOID};
+  inline static BasicShapeType basic_shape_type = BasicShapeType::PARABOLOID;
 
   NPatch(std::string filename, size_t num_sides = 0);
   virtual ~NPatch();
   virtual void updateBaseMesh() override;
 
+  virtual void initBasicShape() = 0;
   virtual void initDomain() = 0;
   virtual void initDomainMesh(size_t resolution = 60) = 0;
   virtual Vector evaluateAtParam(double u, double v) const = 0;

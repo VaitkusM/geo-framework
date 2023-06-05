@@ -28,9 +28,7 @@ MPatch::MPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_sides)
 
   footpoints_ = net_;
 
-  for(auto& p : net_) {
-    p.second[2] = 1.0 - p.second[0]*p.second[0] - p.second[1]*p.second[1];
-  }
+  initBasicShape();
 
   std::cerr << "Number of CPs:" << net_.size() << std::endl;
 
@@ -47,6 +45,19 @@ MPatch::reload()
   initDomain();
   updateBaseMesh();
   return true;
+}
+
+void
+MPatch::initBasicShape()
+{
+  for (auto& [id, p] : net_) {
+    if (basic_shape_type == BasicShapeType::PARABOLOID) {
+      p[2] = 1.0 - p[0] * p[0] - p[1] * p[1];
+    }
+    else if (basic_shape_type == BasicShapeType::HYPERBOLOID) {
+      p[2] = 1.0 - p[0] * p[0] + p[1] * p[1];
+    }
+  }
 }
 
 void

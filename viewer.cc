@@ -103,6 +103,30 @@ void Viewer::setShowBlendFunction(bool value)
   update();
 }
 
+void Viewer::setBasicShapeTypeParaboloid(bool value)
+{
+  if(!value) { return; }
+  NPatch::basic_shape_type = NPatch::BasicShapeType::PARABOLOID;
+  for (auto& [id, o] : objects) {
+    auto np = static_pointer_cast<NPatch>(o);
+    np->initBasicShape();
+    np->updateBaseMesh();
+  }
+  update();
+}
+
+void Viewer::setBasicShapeTypeHyperboloid(bool value)
+{
+  if (!value) { return; }
+  NPatch::basic_shape_type = NPatch::BasicShapeType::HYPERBOLOID;
+  for (auto& [id, o] : objects) {
+    auto np = static_pointer_cast<NPatch>(o);
+    np->initBasicShape();
+    np->updateBaseMesh();
+  }
+  update();
+}
+
 void Viewer::deleteObjects() {
   objects.clear();
 }
