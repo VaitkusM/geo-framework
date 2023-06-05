@@ -8,3 +8,4 @@ release
 CMake*
 TAGS
 .vs*
+*.code-workspace
