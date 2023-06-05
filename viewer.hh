@@ -27,9 +27,14 @@ public:
   void updateMeanMinMax();
   void setupCamera();
 
-  void setSPatchEnabled(bool value);
-  void setMPatchEnabled(bool value);
-  void setGBPatchEnabled(bool value);
+  void setEnabledSPatch(bool value);
+  void setEnabledMPatch(bool value);
+  void setEnabledGBPatch(bool value);
+  
+  void setShowBlendFunction(bool value);
+
+  void incrementIdxForAll();
+  void incrementIdx(const QString&);
 
   std::map<QString,std::shared_ptr<Object>> objects;
   Visualization vis;

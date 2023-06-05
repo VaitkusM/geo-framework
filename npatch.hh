@@ -27,6 +27,9 @@ public:
   size_t next(size_t i, size_t j = 1) const { return (i + j) % n_; }
   size_t prev(size_t i, size_t j = 1) const { return (i + n_ - j) % n_; }
 
+  virtual void swapFootpoints() = 0;
+
+  bool show_basis_fcn;
   size_t n_;
   BaseMesh domain_mesh;
   std::vector<Vector> vertices_;

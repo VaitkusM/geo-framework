@@ -21,6 +21,7 @@ SPatch::SPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_sides)
     }
     net_[id] = pt;
   }
+  footpoints_ = net_;
 
   for (auto& p : net_) {
     p.second[2] = 1.0 - p.second[0] * p.second[0] - p.second[1] * p.second[1];
@@ -79,8 +80,6 @@ SPatch::initDomainMesh(size_t resolution)
 Vector 
 SPatch::evaluateAtParam(double u, double v) const
 {
-  const bool basis_fcn = false;
-  
   std::vector<double> bc(n_);
   for(size_t i = 0; i < n_; ++i) {
     bc[i] = getGBC(u, v, i);
@@ -88,7 +87,7 @@ SPatch::evaluateAtParam(double u, double v) const
   Vector p(0,0,0);
   size_t cp_idx = 0;
   for (const auto &cp : net_) {
-    if(!basis_fcn) {
+    if(!show_basis_fcn) {
       p += cp.second * multiBernstein(cp.first, bc);
     }
     else {
@@ -221,6 +220,12 @@ SPatch::neighbors(const Index& si) const
   }
   
   return candidates;
+}
+
+void 
+SPatch::swapFootpoints()
+{
+  std::swap(footpoints_, net_);
 }
 
 void SPatch::draw(const Visualization &vis) const

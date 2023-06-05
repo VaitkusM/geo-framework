@@ -9,10 +9,10 @@ GBPatch::GBPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_side
 {
   initDomain();
 
-  ribbons_.clear();
-  ribbons_.reserve(n_);
+  net_.clear();
   Vector center = Vector(0.0, 0.0, 0.0);
   central_cp = center;
+  net_[{n_, 0, 0}] = center; 
   for (size_t i = 0; i < n_; ++i) {
     auto cim2 = vertices_[prev(prev(i))];
     auto cim1 = vertices_[prev(i)];
@@ -38,15 +38,20 @@ GBPatch::GBPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_side
     auto cp12 = 1. / 9. * qr00 + 2. / 9. * qr01 + 2. / 9. * qr10 + 4. / 9. * qr11;
     auto cp13 = 1.0 / 3.0 * qr00 + 2.0 / 3.0 * qr10;
 
-    ribbons_.push_back({ {cp00,cp01,cp02,cp03},{cp10,cp11,cp12,cp13} });
+    net_[{i, 0, 0}] = cp00;
+    net_[{i, 0, 1}] = cp01;
+    net_[{i, 1, 0}] = cp10;
+    net_[{i, 1, 1}] = cp11;
+    net_[{next(i), 0, 0}] = cp03;
+    net_[{next(i), 0, 1}] = cp13;
+    net_[{next(i), 1, 0}] = cp02;
+    net_[{next(i), 1, 1}] = cp12;
   }
 
-  for (auto& r : ribbons_) {
-    for (auto& l : r) {
-      for (auto& cp : l) {
-        cp[2] = 1.0 - cp[0] * cp[0] - cp[1] * cp[1];
-      }
-    }
+  footpoints_ = net_;
+
+  for(auto& [id,p] : net_) {
+    p[2] = 1.0 - p[0] * p[0] - p[1] * p[1];
   }
   central_cp[2] = 1.0 - central_cp[0] * central_cp[0] - central_cp[1] * central_cp[1];
 
@@ -98,17 +103,37 @@ GBPatch::evaluateAtParam(double u, double v) const
   size_t nl = num_layers();
   Vector p(0, 0, 0);
   double sum = 0.0;
-  for(size_t i = 0; i < n_; ++i) {
-    for(size_t l = 0; l < nl; ++l) {
-      for(size_t c = 0; c <= d_; ++c) {
-        double Blc = bf[i][l][c];
-        p   += Blc*ribbons_[i][l][c];
-        sum += Blc;
+  size_t idx = 0;
+  for(const auto& [id,cp] : net_) {
+    
+    auto [i,l,c] = id;
+
+    if(i < n_) {
+      double Blc = bf[i][l][c] + bf[prev(i)][c][d_ - l];
+      if (!show_basis_fcn) {
+        p += Blc * cp;
       }
+      else {
+        if (idx == (selected_idx % net_.size())) {
+          p = Vector(u, v, Blc);
+        }
+      }
+      sum += Blc;
+      ++idx;
     }
   }
+
   if(!normalized) {
-    p += (1.0 - sum)*central_cp;
+    if(!show_basis_fcn) {
+      auto ccp = net_.at({ n_,0,0 });
+      p += (1.0 - sum)*ccp;
+    }
+    else {
+      if (idx == (selected_idx % net_.size())) {
+        p = Vector(u, v, 1.0 - sum);
+        ++idx;
+      }
+    }
   }
   else {
     p /= sum;
@@ -179,6 +204,12 @@ GBPatch::bernstein(size_t n, double u, DoubleVector& coeff)
 }
 
 void
+GBPatch::swapFootpoints()
+{
+  std::swap(footpoints_, net_);
+}
+
+void
 GBPatch::draw(const Visualization& vis) const
 {
   Object::draw(vis);
@@ -187,18 +218,11 @@ GBPatch::draw(const Visualization& vis) const
     glPointSize(8.0);
     glColor3d(1.0, 0.0, 1.0);
     size_t idx = 0;
-    for (const auto& r : ribbons_) {
-      for(const auto& l : r) {
-        for(const auto& cp : l) {
-          glBegin(GL_POINTS);
-          glVertex3dv(cp.data());
-          glEnd();
-        }
-      }
+    for(const auto& [id,cp] : net_) {
+      glBegin(GL_POINTS);
+      glVertex3dv(cp.data());
+      glEnd();
     }
-    glBegin(GL_POINTS);
-    glVertex3dv(central_cp.data());
-    glEnd();
     glPointSize(1.0);
     glEnable(GL_LIGHTING);
   }

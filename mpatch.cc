@@ -26,6 +26,8 @@ MPatch::MPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_sides)
     }
   }
 
+  footpoints_ = net_;
+
   for(auto& p : net_) {
     p.second[2] = 1.0 - p.second[0]*p.second[0] - p.second[1]*p.second[1];
   }
@@ -69,7 +71,6 @@ Vector
 MPatch::evaluateAtParam(double u, double v) const
 {
   // return {0,0,0};
-  const bool basis_fcn = false;
 
   Vector p(0, 0, 0);
   size_t cp_idx = 0;
@@ -77,7 +78,7 @@ MPatch::evaluateAtParam(double u, double v) const
   getBlendFunctions(u, v, bf, true);
   for (const auto& cp : net_) {
     const auto& id = cp.first;
-    if (!basis_fcn) {
+    if (!show_basis_fcn) {
       p += cp.second * bf[cp_idx];
     }
     else {
@@ -215,6 +216,12 @@ MPatch::neighbors(const Index& si) const
   }
 
   return candidates;
+}
+
+void 
+MPatch::swapFootpoints()
+{
+  std::swap(footpoints_, net_);
 }
 
 void 

@@ -60,18 +60,46 @@ void Viewer::setSlicingScaling(double scaling) {
   vis.slicing_scaling = scaling;
 }
 
-void Viewer::setSPatchEnabled(bool value) {
+void Viewer::setEnabledSPatch(bool value) {
   objects.at("S-Patch")->enabled = value;
   update();
 }
 
-void Viewer::setMPatchEnabled(bool value) {
+void Viewer::setEnabledMPatch(bool value) {
   objects.at("M-Patch")->enabled = value;
   update();
 }
 
-void Viewer::setGBPatchEnabled(bool value) {
+void Viewer::setEnabledGBPatch(bool value) {
   objects.at("GB-Patch")->enabled = value;
+  update();
+}
+
+void Viewer::incrementIdxForAll() {
+  for (auto& [id, o] : objects) {
+    incrementIdx(id);
+  }
+  update();
+}
+
+void Viewer::incrementIdx(const QString& id) {
+  auto o = objects.at(id);
+  o->selected_idx++;
+  o->updateBaseMesh();
+  if (o->enabled) {
+    displayMessage(id + QString(" selected idx: ") + QString::number(o->selected_idx));
+  }
+  update();
+}
+
+void Viewer::setShowBlendFunction(bool value)
+{
+  for (auto& [id, o] : objects) {
+    auto np = static_pointer_cast<NPatch>(o);
+    np->show_basis_fcn = value;
+    np->swapFootpoints();
+    np->updateBaseMesh();
+  }
   update();
 }
 
@@ -328,16 +356,7 @@ void Viewer::keyPressEvent(QKeyEvent *e) {
       update();
       break;
     case Qt::Key_B:
-      for (auto& [id,o] : objects) {
-        if(QString(o->get_filename().c_str()).endsWith(".sp")) {
-          o->selected_idx++;
-          o->updateBaseMesh();
-          //setupCamera();
-          displayMessage(QString("Selected idx: ") + QString::number(o->selected_idx));
-          auto pt = std::static_pointer_cast<MPatch>(o)->evaluateAtParam(0, 0);
-          displayMessage("Value at (0,0): " + QString::number(pt[2]) + "");
-        }
-      }
+      incrementIdxForAll();
       update();
       break;
     default:

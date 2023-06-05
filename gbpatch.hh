@@ -4,7 +4,7 @@
 
 class GBPatch : public NPatch {
 public:
-  using Index = std::array<size_t, 4>;
+  using Index = std::array<size_t, 3>;
   using Ribbon = std::vector<std::vector<Vector> >;
 
   GBPatch(std::string filename);
@@ -24,11 +24,14 @@ public:
   static void bernstein(size_t n, double u, DoubleVector& coeff);
   void getBlendFunctions(double u, double v, std::vector<std::vector<DoubleVector> > &values) const;
 
+  virtual void swapFootpoints() override;
+
   size_t num_layers() const {return (d_ + 1) / 2;};
   //virtual void setControlPoint(const Index& index, const Vector& p);
 
   size_t d_;
-  std::vector<Ribbon> ribbons_;
+  std::map<Index, Vector> footpoints_;
+  std::map<Index, Vector> net_;
   Vector central_cp;
   bool normalized;
 };

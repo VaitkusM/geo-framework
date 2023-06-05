@@ -32,8 +32,11 @@ public:
 
   std::vector<Index> neighbors(const Index& si) const;
 
+  virtual void swapFootpoints() override;
+
   virtual void setControlPoint(const Index& index, const Vector& p);
 
   size_t d_;
+  std::map<Index, Vector> footpoints_;
   std::map<Index, Vector> net_;
 };

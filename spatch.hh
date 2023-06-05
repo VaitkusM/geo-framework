@@ -30,7 +30,10 @@ public:
   static std::vector<Index> indices(size_t n, size_t d);
   
   std::vector<Index> neighbors(const Index& si) const;
+
+  virtual void swapFootpoints() override;
   
   size_t d_;
+  std::map<Index, Vector> footpoints_;
   std::map<Index, Vector> net_;
 };

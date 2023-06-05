@@ -51,17 +51,22 @@ Window::Window(QApplication *parent) :
   auto spatchAction = new QAction(tr("S-Patch"), this);
   spatchAction->setCheckable(true);
   spatchAction->setChecked(viewer->objects.at("S-Patch")->enabled);
-  connect(spatchAction, &QAction::triggered, viewer, &Viewer::setSPatchEnabled);
+  connect(spatchAction, &QAction::triggered, viewer, &Viewer::setEnabledSPatch);
 
   auto mpatchAction = new QAction(tr("M-Patch"), this);
   mpatchAction->setCheckable(true);
   mpatchAction->setChecked(viewer->objects.at("M-Patch")->enabled);
-  connect(mpatchAction, &QAction::triggered, viewer, &Viewer::setMPatchEnabled);
+  connect(mpatchAction, &QAction::triggered, viewer, &Viewer::setEnabledMPatch);
 
   auto gbpatchAction = new QAction(tr("GB-Patch"), this);
   gbpatchAction->setCheckable(true);
   gbpatchAction->setChecked(viewer->objects.at("GB-Patch")->enabled);
-  connect(gbpatchAction, &QAction::triggered, viewer, &Viewer::setGBPatchEnabled);
+  connect(gbpatchAction, &QAction::triggered, viewer, &Viewer::setEnabledGBPatch);
+
+  auto showBlendFcnAction = new QAction(tr("Show blend functions"), this);
+  showBlendFcnAction->setCheckable(true);
+  showBlendFcnAction->setChecked(false);
+  connect(showBlendFcnAction, &QAction::triggered, viewer, &Viewer::setShowBlendFunction);
 
   auto fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(openAction);
@@ -77,6 +82,9 @@ Window::Window(QApplication *parent) :
   patchMenu->addAction(spatchAction);
   patchMenu->addAction(mpatchAction);
   patchMenu->addAction(gbpatchAction);
+  patchMenu->addSeparator();
+  patchMenu->addAction(showBlendFcnAction);
+
 }
 
 void Window::open(bool clear_others) {

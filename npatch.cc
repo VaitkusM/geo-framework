@@ -1,7 +1,7 @@
 #include "npatch.hh"
 #include <functional>
 
-NPatch::NPatch(std::string filename, size_t num_sides) : Object(filename), n_(num_sides)
+NPatch::NPatch(std::string filename, size_t num_sides) : Object(filename), show_basis_fcn(false), n_(num_sides)
 {
   
 }
