@@ -19,6 +19,7 @@ Window::Window(QApplication *parent) :
   connect(viewer, &Viewer::midComputation, this, &Window::midComputation);
   connect(viewer, &Viewer::endComputation, this, &Window::endComputation);
   setCentralWidget(viewer);
+  viewer->createPatches();
 
   auto openAction = new QAction(tr("&Open"), this);
   openAction->setShortcut(tr("Ctrl+O"));
@@ -47,6 +48,21 @@ Window::Window(QApplication *parent) :
   slicingAction->setStatusTip(tr("Set contouring direction and scaling"));
   connect(slicingAction, &QAction::triggered, this, &Window::setSlicing);
 
+  auto spatchAction = new QAction(tr("S-Patch"), this);
+  spatchAction->setCheckable(true);
+  spatchAction->setChecked(viewer->objects.at("S-Patch")->enabled);
+  connect(spatchAction, &QAction::triggered, viewer, &Viewer::setSPatchEnabled);
+
+  auto mpatchAction = new QAction(tr("M-Patch"), this);
+  mpatchAction->setCheckable(true);
+  mpatchAction->setChecked(viewer->objects.at("M-Patch")->enabled);
+  connect(mpatchAction, &QAction::triggered, viewer, &Viewer::setMPatchEnabled);
+
+  auto gbpatchAction = new QAction(tr("GB-Patch"), this);
+  gbpatchAction->setCheckable(true);
+  gbpatchAction->setChecked(viewer->objects.at("GB-Patch")->enabled);
+  connect(gbpatchAction, &QAction::triggered, viewer, &Viewer::setGBPatchEnabled);
+
   auto fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(openAction);
   fileMenu->addAction(importAction);
@@ -56,6 +72,11 @@ Window::Window(QApplication *parent) :
   visMenu->addAction(cutoffAction);
   visMenu->addAction(rangeAction);
   visMenu->addAction(slicingAction);
+
+  auto patchMenu = menuBar()->addMenu(tr("&Patches"));
+  patchMenu->addAction(spatchAction);
+  patchMenu->addAction(mpatchAction);
+  patchMenu->addAction(gbpatchAction);
 }
 
 void Window::open(bool clear_others) {

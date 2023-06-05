@@ -60,6 +60,21 @@ void Viewer::setSlicingScaling(double scaling) {
   vis.slicing_scaling = scaling;
 }
 
+void Viewer::setSPatchEnabled(bool value) {
+  objects.at("S-Patch")->enabled = value;
+  update();
+}
+
+void Viewer::setMPatchEnabled(bool value) {
+  objects.at("M-Patch")->enabled = value;
+  update();
+}
+
+void Viewer::setGBPatchEnabled(bool value) {
+  objects.at("GB-Patch")->enabled = value;
+  update();
+}
+
 void Viewer::deleteObjects() {
   objects.clear();
 }
@@ -67,7 +82,7 @@ void Viewer::deleteObjects() {
 bool Viewer::open(std::string filename) {
   std::shared_ptr<Object> surface;
   if (filename.ends_with(".sp")) {
-    surface = std::make_shared<SPatch>(5,3);
+    surface = std::make_shared<GBPatch>(5,3);
   }
   else if(filename.ends_with(".bzr")) {
     surface = std::make_shared<Bezier>(filename);
@@ -78,7 +93,7 @@ bool Viewer::open(std::string filename) {
   if (!surface->valid()) {
     return false;
   }
-  objects.push_back(surface);
+  objects[filename.data()] = surface ;
   updateMeanMinMax();
   setupCamera();
   return true;
@@ -116,35 +131,52 @@ void Viewer::init() {
   glTexImage1D(GL_TEXTURE_1D, 0, GL_RGB, 2, 0, GL_RGB, GL_UNSIGNED_BYTE_3_3_2, &slicing_img);
 }
 
+void Viewer::createPatches()
+{
+  objects["S-Patch"] = std::make_shared<SPatch>(5, 3);
+  objects["M-Patch"] = std::make_shared<MPatch>(5, 3);
+  objects["GB-Patch"] = std::make_shared<GBPatch>(5, 3);
+
+  objects["S-Patch"]->enabled  = true;
+  objects["M-Patch"]->enabled  = false;
+  objects["GB-Patch"]->enabled = false;
+
+  updateMeanMinMax();
+  setupCamera();
+}
+
 void Viewer::draw() {
-  for (auto o : objects) {
-    o->draw(vis);
-    if(false && o->get_filename().ends_with(".sp")) {
-      // drawArrow({ 0.0, 0.0, 0.0 }, { 1.0, 0.0, 0.0 });
-      // drawArrow({ 0.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 });
-      // drawArrow({ 0.0, 0.0, 0.0 }, { 0.0, 0.0, 1.0 });
-      auto omp = std::static_pointer_cast<MPatch>(o);
-      for(auto cp: omp->net_) {
-        auto pt = cp.second.data();
-        auto idx = cp.first;
-        qglviewer::Vec screenPos =
-          camera()->projectedCoordinatesOf(qglviewer::Vec(pt[0], pt[1], pt[2]));
-        QString text("(");
-        for(size_t i = 0; i < idx.size(); ++i) {
-          text+= QString::number(idx[i]) + (i < (idx.size() - 1) ? "," : ")");
+  for (auto [id,o] : objects) {
+    if(o->enabled) {
+      o->draw(vis);
+
+      if(false && o->get_filename().ends_with(".sp")) {
+        // drawArrow({ 0.0, 0.0, 0.0 }, { 1.0, 0.0, 0.0 });
+        // drawArrow({ 0.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 });
+        // drawArrow({ 0.0, 0.0, 0.0 }, { 0.0, 0.0, 1.0 });
+        auto omp = std::static_pointer_cast<MPatch>(o);
+        for(auto cp: omp->net_) {
+          auto pt = cp.second.data();
+          auto idx = cp.first;
+          qglviewer::Vec screenPos =
+            camera()->projectedCoordinatesOf(qglviewer::Vec(pt[0], pt[1], pt[2]));
+          QString text("(");
+          for(size_t i = 0; i < idx.size(); ++i) {
+            text+= QString::number(idx[i]) + (i < (idx.size() - 1) ? "," : ")");
+          }
+          drawText((int)screenPos[0], (int)screenPos[1], text);
         }
-        drawText((int)screenPos[0], (int)screenPos[1], text);
+        // for(auto vt : omp->baseMesh().vertices()) {
+        //   auto pt = omp->baseMesh().point(vt);
+        //   qglviewer::Vec screenPos =
+        //     camera()->projectedCoordinatesOf(qglviewer::Vec(pt[0], pt[1], pt[2]));
+        //   QString text("(");
+        //   for (size_t i = 0; i < pt.size(); ++i) {
+        //     text += QString::number(pt[i]) + (i < (pt.size() - 1) ? "," : ")");
+        //   }
+        //   drawText((int)screenPos[0], (int)screenPos[1], text);
+        // }
       }
-      // for(auto vt : omp->baseMesh().vertices()) {
-      //   auto pt = omp->baseMesh().point(vt);
-      //   qglviewer::Vec screenPos =
-      //     camera()->projectedCoordinatesOf(qglviewer::Vec(pt[0], pt[1], pt[2]));
-      //   QString text("(");
-      //   for (size_t i = 0; i < pt.size(); ++i) {
-      //     text += QString::number(pt[i]) + (i < (pt.size() - 1) ? "," : ")");
-      //   }
-      //   drawText((int)screenPos[0], (int)screenPos[1], text);
-      // }
     }
   }
 
@@ -174,10 +206,12 @@ void Viewer::drawWithNames() {
     drawArrow(p, p + Vec(0.0, 0.0, axes.size), axes.size / 50.0);
     glPopName();
   } else {
-    for (size_t i = 0; i < objects.size(); ++i) {
+    size_t i = 0;
+    for (const auto& [id,o] : objects) {
       glPushName(static_cast<GLuint>(i));
-      objects[i]->drawWithNames(vis);
+      o->drawWithNames(vis);
       glPopName();
+      ++i;
     }
   }
 }
@@ -198,7 +232,11 @@ void Viewer::endSelection(const QPoint &) {
       if (ptr[1] < zMin) {
         zMin = ptr[1];
         if (names == 2) {
-          selected_object = ptr[3];
+
+          auto selected_object_id = ptr[3];
+          auto it = objects.begin();
+          std::advance(it, selected_object_id);
+          selected_object = it->second;
           ptr++;
         }
         setSelectedName(ptr[3]);
@@ -214,7 +252,7 @@ static inline Vector toVector(const qglviewer::Vec &v) {
 
 void Viewer::postSelection(const QPoint &p) {
   int sel = selectedName();
-  if (sel == -1) {
+  if (sel == -1 || !selected_object->enabled) {
     axes.shown = false;
     return;
   }
@@ -231,7 +269,7 @@ void Viewer::postSelection(const QPoint &p) {
 
   using qglviewer::Vec;
   selected_vertex = sel;
-  axes.position = objects[selected_object]->postSelection(sel);
+  axes.position = selected_object->postSelection(sel);
   double depth = camera()->projectedCoordinatesOf(Vec(axes.position))[2];
   Vec q1 = camera()->unprojectedCoordinatesOf(Vec(0.0, 0.0, depth));
   Vec q2 = camera()->unprojectedCoordinatesOf(Vec(width(), height(), depth));
@@ -244,7 +282,7 @@ void Viewer::keyPressEvent(QKeyEvent *e) {
   if (e->modifiers() == Qt::NoModifier)
     switch (e->key()) {
     case Qt::Key_R:
-      for (auto o : objects)
+      for (auto [id,o] : objects)
         o->reload();
       update();
       break;
@@ -290,7 +328,7 @@ void Viewer::keyPressEvent(QKeyEvent *e) {
       update();
       break;
     case Qt::Key_B:
-      for (auto o : objects) {
+      for (auto& [id,o] : objects) {
         if(QString(o->get_filename().c_str()).endsWith(".sp")) {
           o->selected_idx++;
           o->updateBaseMesh();
@@ -354,9 +392,8 @@ void Viewer::mouseMoveEvent(QMouseEvent *e) {
     float d = (p - axes.grabbed_pos) | toVector(axis);
     axes.position[axes.selected_axis] = axes.original_pos[axes.selected_axis] + d;
   }
-
-  objects[selected_object]->movement(selected_vertex, axes.position);
-  objects[selected_object]->updateBaseMesh();
+  selected_object->movement(selected_vertex, axes.position);
+  selected_object->updateBaseMesh();
   updateMeanMinMax();
   update();
 }
@@ -400,7 +437,7 @@ QString Viewer::helpString() const {
 
 void Viewer::updateMeanMinMax() {
   std::vector<double> mean;
-  for (auto o : objects) {
+  for (auto [id,o] : objects) {
     const auto &mesh = o->baseMesh();
     for (auto v : mesh.vertices())
       mean.push_back(mesh.data(v).mean);
@@ -419,7 +456,7 @@ void Viewer::updateMeanMinMax() {
 void Viewer::setupCamera() {
   double large = std::numeric_limits<double>::max();
   Vector box_min(large, large, large), box_max(-large, -large, -large);
-  for (auto o : objects) {
+  for (auto [id,o] : objects) {
     const auto &mesh = o->baseMesh();
     for (auto v : mesh.vertices()) {
       box_min.minimize(mesh.point(v));

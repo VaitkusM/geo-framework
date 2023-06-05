@@ -92,43 +92,16 @@ GBPatch::initDomainMesh(size_t resolution)
 Vector
 GBPatch::evaluateAtParam(double u, double v) const
 {
-  std::vector<double> bc(n_), s(n_, 0.), h(n_, 0.);
-  for (size_t i = 0; i < n_; ++i) {
-    bc[i] = getGBC(u, v, i);
-  }
-  //std::rotate(bc.begin(),bc.begin() + 1, bc.end());
-  for(size_t i = 0; i < n_; ++i) {
-    if(bc[i] + bc[prev(i)] > epsilon) {
-      s[i] = bc[i]/(bc[i] + bc[prev(i)]);
-    }
-    h[i] = 1.0 - bc[i] - bc[prev(i)];
-  }
+  std::vector<std::vector<DoubleVector> > bf;
+  getBlendFunctions(u, v, bf);
 
-  size_t nl = (d_+1)/2;
+  size_t nl = num_layers();
   Vector p(0, 0, 0);
   double sum = 0.0;
   for(size_t i = 0; i < n_; ++i) {
-    auto a = 1.0, b = 1.0;
-    if ((std::pow(h[prev(i)], nl) + std::pow(h[i], nl)) < epsilon) {
-      a = 0.5;
-    }
-    else {
-      a = std::pow(h[prev(i)], nl) / (std::pow(h[prev(i)], nl) + std::pow(h[i], nl));
-    }
-
-    if ((std::pow(h[next(i)], nl) + std::pow(h[i], nl)) < epsilon) {
-      b = 0.5;
-    }
-    else {
-      b = std::pow(h[next(i)], nl) / (std::pow(h[next(i)], nl) + std::pow(h[i], nl));
-    }
-    DoubleVector Bu,Bv;
-    bernstein(d_, s[i], Bu);
-    bernstein(d_, h[i], Bv);
     for(size_t l = 0; l < nl; ++l) {
       for(size_t c = 0; c <= d_; ++c) {
-        double mu  = c < nl ? a : b;
-        double Blc = mu*Bu[c]*Bv[l];
+        double Blc = bf[i][l][c];
         p   += Blc*ribbons_[i][l][c];
         sum += Blc;
       }
@@ -143,8 +116,53 @@ GBPatch::evaluateAtParam(double u, double v) const
   return p;
 }
 
-void 
-GBPatch::bernstein(size_t n, double u, DoubleVector& coeff) 
+void
+GBPatch::getBlendFunctions(double u, double v, std::vector<std::vector<DoubleVector> >& values) const
+{
+  values.clear();
+  values.resize(n_, std::vector<DoubleVector>(d_+1, DoubleVector(d_+1)));
+  std::vector<double> bc(n_), s(n_, 0.), h(n_, 0.);
+  for (size_t i = 0; i < n_; ++i) {
+    bc[i] = getGBC(u, v, i);
+  }
+  //std::rotate(bc.begin(),bc.begin() + 1, bc.end());
+  for (size_t i = 0; i < n_; ++i) {
+    if (bc[i] + bc[prev(i)] > epsilon) {
+      s[i] = bc[i] / (bc[i] + bc[prev(i)]);
+    }
+    h[i] = 1.0 - bc[i] - bc[prev(i)];
+  }
+
+  size_t nl = num_layers();
+  for (size_t i = 0; i < n_; ++i) {
+    auto a = 1.0, b = 1.0;
+    if ((std::pow(h[prev(i)], nl) + std::pow(h[i], nl)) < epsilon) {
+      a = 0.5;
+    }
+    else {
+      a = std::pow(h[prev(i)], nl) / (std::pow(h[prev(i)], nl) + std::pow(h[i], nl));
+    }
+
+    if ((std::pow(h[next(i)], nl) + std::pow(h[i], nl)) < epsilon) {
+      b = 0.5;
+    }
+    else {
+      b = std::pow(h[next(i)], nl) / (std::pow(h[next(i)], nl) + std::pow(h[i], nl));
+    }
+    DoubleVector Bu, Bv;
+    bernstein(d_, s[i], Bu);
+    bernstein(d_, h[i], Bv);
+    for (size_t l = 0; l < nl; ++l) {
+      for (size_t c = 0; c <= d_; ++c) {
+        double mu = c < nl ? a : b;
+        values[i][l][c] = mu * Bu[c] * Bv[l];
+      }
+    }
+  }
+}
+
+void
+GBPatch::bernstein(size_t n, double u, DoubleVector& coeff)
 {
   coeff.clear(); coeff.reserve(n + 1);
   coeff.push_back(1.0);

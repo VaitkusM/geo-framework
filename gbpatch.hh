@@ -22,7 +22,9 @@ public:
   virtual void movement(int selected, const Vector& pos) override;
 
   static void bernstein(size_t n, double u, DoubleVector& coeff);
+  void getBlendFunctions(double u, double v, std::vector<std::vector<DoubleVector> > &values) const;
 
+  size_t num_layers() const {return (d_ + 1) / 2;};
   //virtual void setControlPoint(const Index& index, const Vector& p);
 
   size_t d_;

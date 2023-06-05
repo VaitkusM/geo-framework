@@ -22,6 +22,26 @@ public:
   void setSlicingScaling(double scaling);
   void deleteObjects();
   bool open(std::string filename);
+  void createPatches();
+
+  void updateMeanMinMax();
+  void setupCamera();
+
+  void setSPatchEnabled(bool value);
+  void setMPatchEnabled(bool value);
+  void setGBPatchEnabled(bool value);
+
+  std::map<QString,std::shared_ptr<Object>> objects;
+  Visualization vis;
+
+  int selected_vertex;
+  std::shared_ptr<Object> selected_object;
+  struct ModificationAxes {
+    bool shown;
+    float size;
+    int selected_axis;
+    Vector position, grabbed_pos, original_pos;
+  } axes;
 
 signals:
   void startComputation(QString message);
@@ -37,20 +57,4 @@ protected:
   virtual void keyPressEvent(QKeyEvent *e) override;
   virtual void mouseMoveEvent(QMouseEvent *e) override;
   virtual QString helpString() const override;
-
-private:
-  void updateMeanMinMax();
-  void setupCamera();
-
-  std::vector<std::shared_ptr<Object>> objects;
-  Visualization vis;
-
-  int selected_vertex;
-  size_t selected_object;
-  struct ModificationAxes {
-    bool shown;
-    float size;
-    int selected_axis;
-    Vector position, grabbed_pos, original_pos;
-  } axes;
 };
