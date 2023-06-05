@@ -228,7 +228,8 @@ SPatch::swapFootpoints()
   std::swap(footpoints_, net_);
 }
 
-void SPatch::draw(const Visualization &vis) const
+void 
+SPatch::draw(const Visualization &vis) const
 {
   Object::draw(vis);
   if (vis.show_control_points) {

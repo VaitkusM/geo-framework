@@ -29,6 +29,8 @@ public:
   size_t num_layers() const {return (d_ + 1) / 2;};
   //virtual void setControlPoint(const Index& index, const Vector& p);
 
+  std::vector<Index> neighbors(const Index& si) const;
+
   size_t d_;
   std::map<Index, Vector> footpoints_;
   std::map<Index, Vector> net_;

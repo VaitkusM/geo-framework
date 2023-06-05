@@ -209,12 +209,55 @@ GBPatch::swapFootpoints()
   std::swap(footpoints_, net_);
 }
 
+std::vector<GBPatch::Index>
+GBPatch::neighbors(const Index& si) const
+{
+  auto [i,l,c] = si;
+  auto nl = num_layers();
+  std::vector<Index> candidates;
+  if(i < n_) {
+    if(l < nl - 1) {
+      candidates.push_back({i, l + 1 , c});
+    }
+    else {
+      candidates.push_back({prev(i), c, nl - 1});
+    }
+    if(c < nl - 1) {
+      candidates.push_back({ i, l , c + 1  });
+    }
+    else {
+      candidates.push_back({ next(i), nl - 1 , l });
+    }
+  }
+
+  else {
+    for (size_t i = 0; i < n_; ++i) {
+      candidates.push_back({ i, nl - 1, nl - 1 });
+    }
+  }
+
+  return candidates;
+}
+
+
 void
 GBPatch::draw(const Visualization& vis) const
 {
   Object::draw(vis);
   if (vis.show_control_points) {
     glDisable(GL_LIGHTING);
+    glLineWidth(3.0);
+    glColor3d(0.3, 0.3, 1.0);
+    for (const auto& [idx,cp] : net_) {
+      auto nbs = neighbors(idx);
+      for (const auto& nb : nbs) {
+        glBegin(GL_LINE_STRIP);
+        glVertex3dv(cp.data());
+        glVertex3dv(net_.at(nb).data());
+        glEnd();
+      }
+    }
+    glLineWidth(1.0);
     glPointSize(8.0);
     glColor3d(1.0, 0.0, 1.0);
     size_t idx = 0;
@@ -234,16 +277,37 @@ GBPatch::drawWithNames(const Visualization& vis) const
   if (!vis.show_control_points) {
     return;
   }
+  size_t i = 0;
+  for (const auto& p : net_) {
+    glPushName(static_cast<GLuint>(i));
+    glRasterPos3dv(p.second.data());
+    glPopName();
+    ++i;
+  }
 }
 
 Vector
 GBPatch::postSelection(int selected)
 {
+  size_t i = 0;
+  for (const auto& p : net_) {
+    if (i == selected) {
+      return p.second;
+    }
+    ++i;
+  }
   return Vector(0, 0, 0);
 }
 
 void
 GBPatch::movement(int selected, const Vector& pos)
 {
-
+  size_t i = 0;
+  for (auto& p : net_) {
+    if (i == selected) {
+      p.second = pos;
+      break;
+    }
+    ++i;
+  }
 }
