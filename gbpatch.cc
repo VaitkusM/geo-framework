@@ -267,9 +267,16 @@ GBPatch::draw(const Visualization& vis) const
     glColor3d(1.0, 0.0, 1.0);
     size_t idx = 0;
     for(const auto& [id,cp] : net_) {
+      if (idx == (selected_idx % net_.size())) {
+        glPointSize(16.0);
+      }
+      else {
+        glPointSize(8.0);
+      }
       glBegin(GL_POINTS);
       glVertex3dv(cp.data());
       glEnd();
+      ++idx;
     }
     glPointSize(1.0);
     glEnable(GL_LIGHTING);

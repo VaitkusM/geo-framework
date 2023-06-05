@@ -257,7 +257,7 @@ MPatch::draw(const Visualization& vis) const
     glColor3d(1.0, 0.0, 1.0);
     size_t idx = 0;
     for (const auto& cp : net_) {
-      if (idx++ == (selected_idx % net_.size())) {
+      if (idx == (selected_idx % net_.size())) {
         glPointSize(16.0);
       }
       else {
@@ -266,6 +266,7 @@ MPatch::draw(const Visualization& vis) const
       glBegin(GL_POINTS);
       glVertex3dv(cp.second.data());
       glEnd();
+      ++idx;
     }
     glPointSize(1.0);
     glEnable(GL_LIGHTING);
