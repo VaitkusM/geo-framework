@@ -8,7 +8,7 @@ public:
   const double epsilon = 1.0e-8;
   using DoubleVector = std::vector<double>;
   enum class BarycentricType { WACHSPRESS, MEAN_VALUE, HARMONIC };
-  enum class BasicShapeType {PARABOLOID, HYPERBOLOID};
+  enum class BasicShapeType {PARABOLOID, HYPERBOLOID, PLANE};
   inline static BasicShapeType basic_shape_type = BasicShapeType::PARABOLOID;
 
   NPatch(std::string filename, size_t num_sides = 0);

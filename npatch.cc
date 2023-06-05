@@ -15,8 +15,10 @@ NPatch::updateBaseMesh()
 {
   mesh = domain_mesh;
   for(auto vv : domain_mesh.vertices()) {
-    auto pt_uv = mesh.point(vv);
     mesh.point(vv) = evaluateAtParam(vv);
+    if (mesh.data(vv).spider_idx[0] == 0 && mesh.data(vv).spider_idx[1] == 0 && mesh.data(vv).spider_idx[2] == 0) {
+      std::cerr << std::endl << mesh.point(vv) << std::endl;
+    }
   }
   Object::updateBaseMesh(false, false);
 }
@@ -32,7 +34,9 @@ NPatch::generateSpiderMesh(size_t resolution, BaseMesh &mesh)
 
   // Adding vertices
   Vector center = Vector(0.0, 0.0, 0.0);
-  handles.push_back(mesh.add_vertex(center));
+  auto vtx = mesh.add_vertex(center);
+  handles.push_back(vtx);
+  mesh.data(vtx).spider_idx = {0, 0, 0};
   for (size_t j = 1; j <= resolution; ++j) {
     double u = (double)j / (double)resolution;
     for (size_t k = 0; k < n_; ++k) {
@@ -40,7 +44,7 @@ NPatch::generateSpiderMesh(size_t resolution, BaseMesh &mesh)
         double v = (double)i / (double)j;
         Vector ep = vertices_[prev(k)] * (1.0 - v) + vertices_[k] * v;
         Vector p = center * (1.0 - u) + ep * u;
-        auto vtx = mesh.add_vertex(p);
+        vtx = mesh.add_vertex(p);
         handles.push_back(vtx);
         mesh.data(vtx).spider_idx = {i,j,k} ;
       }

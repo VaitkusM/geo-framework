@@ -82,6 +82,10 @@ Window::Window(QApplication *parent) :
   setBasicShapeTypeHyperboloidAction->setCheckable(true);
   connect(setBasicShapeTypeHyperboloidAction, &QAction::triggered, viewer, &Viewer::setBasicShapeTypeHyperboloid);
 
+  auto setBasicShapeTypePlaneAction = new QAction(tr("Plane"), this);
+  setBasicShapeTypePlaneAction->setCheckable(true);
+  connect(setBasicShapeTypePlaneAction, &QAction::triggered, viewer, &Viewer::setBasicShapeTypePlane);
+
   auto fileMenu = menuBar()->addMenu(tr("&File"));
   fileMenu->addAction(openAction);
   fileMenu->addAction(importAction);
@@ -104,13 +108,16 @@ Window::Window(QApplication *parent) :
   surfacetypeGroup->setExclusive(true);
   surfacetypeGroup->addAction(setBasicShapeTypeParaboloidAction);
   surfacetypeGroup->addAction(setBasicShapeTypeHyperboloidAction);
+  surfacetypeGroup->addAction(setBasicShapeTypePlaneAction);
   setBasicShapeTypeParaboloidAction->setChecked(true);
   setBasicShapeTypeHyperboloidAction->setChecked(false);
+  setBasicShapeTypePlaneAction->setChecked(false);
 
   patchMenu->addSeparator();
   auto typeMenu = patchMenu->addMenu("Basic shape type");
   typeMenu->addAction(setBasicShapeTypeParaboloidAction);
   typeMenu->addAction(setBasicShapeTypeHyperboloidAction);
+  typeMenu->addAction(setBasicShapeTypePlaneAction);
 }
 
 void Window::open(bool clear_others) {

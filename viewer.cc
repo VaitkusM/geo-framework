@@ -133,6 +133,18 @@ void Viewer::setBasicShapeTypeHyperboloid(bool value)
   update();
 }
 
+void Viewer::setBasicShapeTypePlane(bool value)
+{
+  if (!value) { return; }
+  NPatch::basic_shape_type = NPatch::BasicShapeType::PLANE;
+  for (auto& [id, o] : objects) {
+    auto np = static_pointer_cast<NPatch>(o);
+    np->initBasicShape();
+    np->updateBaseMesh();
+  }
+  update();
+}
+
 void Viewer::deleteObjects() {
   objects.clear();
 }
@@ -210,32 +222,31 @@ void Viewer::draw() {
     if(o->enabled) {
       o->draw(vis);
 
-      if(false && o->get_filename().ends_with(".sp")) {
+      if(false && o->get_filename().ends_with(".zb")) {
         // drawArrow({ 0.0, 0.0, 0.0 }, { 1.0, 0.0, 0.0 });
         // drawArrow({ 0.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 });
         // drawArrow({ 0.0, 0.0, 0.0 }, { 0.0, 0.0, 1.0 });
-        auto omp = std::static_pointer_cast<MPatch>(o);
-        for(auto cp: omp->net_) {
-          auto pt = cp.second.data();
-          auto idx = cp.first;
-          qglviewer::Vec screenPos =
-            camera()->projectedCoordinatesOf(qglviewer::Vec(pt[0], pt[1], pt[2]));
-          QString text("(");
-          for(size_t i = 0; i < idx.size(); ++i) {
-            text+= QString::number(idx[i]) + (i < (idx.size() - 1) ? "," : ")");
-          }
-          drawText((int)screenPos[0], (int)screenPos[1], text);
-        }
-        // for(auto vt : omp->baseMesh().vertices()) {
-        //   auto pt = omp->baseMesh().point(vt);
+        auto omp = std::static_pointer_cast<ZBPatch>(o);
+        // for(auto [idx,pt]: omp->net_) {
         //   qglviewer::Vec screenPos =
         //     camera()->projectedCoordinatesOf(qglviewer::Vec(pt[0], pt[1], pt[2]));
         //   QString text("(");
-        //   for (size_t i = 0; i < pt.size(); ++i) {
-        //     text += QString::number(pt[i]) + (i < (pt.size() - 1) ? "," : ")");
+        //   for(size_t i = 0; i < idx.size(); ++i) {
+        //     text+= QString::number(idx[i]) + (i < (idx.size() - 1) ? "," : ")");
         //   }
         //   drawText((int)screenPos[0], (int)screenPos[1], text);
         // }
+        for(auto vt : omp->baseMesh().vertices()) {
+          auto pt = omp->baseMesh().point(vt);
+          qglviewer::Vec screenPos =
+            camera()->projectedCoordinatesOf(qglviewer::Vec(pt[0], pt[1], pt[2]));
+          QString text("(");
+          const auto& idx = omp->baseMesh().data(vt).spider_idx;
+          for (size_t i = 0; i < idx.size(); ++i) {
+            text += QString::number(idx[i]) + (i < (idx.size() - 1) ? "," : ")");
+          }
+          drawText((int)screenPos[0], (int)screenPos[1], text);
+        }
       }
     }
   }

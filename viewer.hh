@@ -36,6 +36,7 @@ public:
 
   void setBasicShapeTypeParaboloid(bool value);
   void setBasicShapeTypeHyperboloid(bool value);
+  void setBasicShapeTypePlane(bool value);
 
   void incrementIdxForAll();
   void incrementIdx(const QString&);

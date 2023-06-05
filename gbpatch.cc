@@ -78,6 +78,9 @@ GBPatch::initBasicShape()
     else if (basic_shape_type == BasicShapeType::HYPERBOLOID) {
       p[2] = 1.0 - p[0] * p[0] + p[1] * p[1];
     }
+    else {
+      p[2] = 0.0;
+    }
   }
 }
 

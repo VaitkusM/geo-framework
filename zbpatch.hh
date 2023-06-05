@@ -43,6 +43,7 @@ public:
   double coefficient() const;
   static Parameter project(size_t n, const Parameter& p);
   void getParameters(const BaseMesh::VertexHandle& vtx, Parameter& params) const;
+  Index gb2zb(size_t s, size_t l, size_t c) const;
 
   size_t d_;
   std::map<Index, Vector> footpoints_;

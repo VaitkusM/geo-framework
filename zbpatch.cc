@@ -7,13 +7,13 @@ ZBPatch::ZBPatch(std::string filename) : NPatch(filename)
   reload();
 }
 
-ZBPatch::ZBPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_sides), d_(depth), normalized(false)
+ZBPatch::ZBPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.zb", num_sides), d_(depth), normalized(true)
 {
   initDomain();
 
   net_.clear();
   Vector center = Vector(0.0, 0.0, 0.0);
-  net_[{n_, 0, 0}] = center;
+  //net_[{n_, 0, 0}] = center;
   for (size_t i = 0; i < n_; ++i) {
     auto cim2 = vertices_[prev(prev(i))];
     auto cim1 = vertices_[prev(i)];
@@ -39,14 +39,10 @@ ZBPatch::ZBPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_side
     auto cp12 = 1. / 9. * qr00 + 2. / 9. * qr01 + 2. / 9. * qr10 + 4. / 9. * qr11;
     auto cp13 = 1.0 / 3.0 * qr00 + 2.0 / 3.0 * qr10;
 
-    net_[{i, 0, 0}] = cp00;
-    net_[{i, 0, 1}] = cp01;
-    net_[{i, 1, 0}] = cp10;
-    net_[{i, 1, 1}] = cp11;
-    net_[{next(i), 0, 0}] = cp03;
-    net_[{next(i), 0, 1}] = cp13;
-    net_[{next(i), 1, 0}] = cp02;
-    net_[{next(i), 1, 1}] = cp12;
+    net_[gb2zb(i, 0, 0)] = cp00;
+    net_[gb2zb(i, 0, 1)] = cp01;
+    net_[gb2zb(i, 1, 0)] = cp10;
+    net_[gb2zb(i, 1, 1)] = cp11;
   }
 
   footpoints_ = net_;
@@ -80,6 +76,9 @@ ZBPatch::initBasicShape()
     else if (basic_shape_type == BasicShapeType::HYPERBOLOID) {
       p[2] = 1.0 - p[0] * p[0] + p[1] * p[1];
     }
+    else {
+      p[2] = 0.0;
+    }
   }
 }
 
@@ -104,6 +103,7 @@ ZBPatch::initDomainMesh(size_t resolution)
 Vector
 ZBPatch::evaluateAtParam(const BaseMesh::VertexHandle& vtx) const
 {
+  //return domain_mesh.point(vtx);
   std::map<Index, double> bf;
   getBlendFunctions(vtx, bf);
   double u = domain_mesh.point(vtx)[0];
@@ -167,7 +167,7 @@ ZBPatch::getBlendFunctions(const BaseMesh::VertexHandle& vtx, std::map<Index, do
     if (it == l.end()) {
       // Inside - (4.5b)
       size_t i = std::min_element(l.begin(), l.end()) - l.begin();
-      size_t im = (i + n_ - 1) % n_, ip = (i + 1) % n_;
+      size_t im = prev(i), ip = next(i);
       if (l[im] > l[ip]) {
         im = i;
         i = ip;
@@ -180,7 +180,7 @@ ZBPatch::getBlendFunctions(const BaseMesh::VertexHandle& vtx, std::map<Index, do
     else {
       // On side i - (4.5a)
       size_t i = it - l.begin();
-      size_t im = (i + n_ - 1) % n_, ip = (i + 1) % n_;
+      size_t im = prev(i), ip = next(i);
       size_t k = l[im];
       B = binomial(d_, k) * std::pow(params[im], k) * std::pow(params[ip], d_ - k);
       for (size_t j = 0; j < n_; ++j) {
@@ -219,15 +219,16 @@ void
 ZBPatch::getParameters(const BaseMesh::VertexHandle& vtx, Parameter& params) const
 {
   std::vector<DoubleVector> vertices_nd;
+  vertices_nd.reserve(n_);
   for (size_t i = 0; i < n_; ++i) {
     DoubleVector v(n_, 1);
     v[i] = 0;
-    v[(i + 1) % n_] = 0;
+    v[next(i)] = 0;
     vertices_nd.push_back(v);
   }
-  DoubleVector center(n_, n_ == 5 ? (std::sqrt(5) - 1) / 2 : 1 / std::sqrt(2));
-  params.clear();
-  params.reserve(n_);
+  DoubleVector center(n_, n_ == 5 ? (std::sqrt(5) - 1) / 2 : (1.0 / std::sqrt(2)));
+  //params.clear();
+  //params.reserve(n_);
 
   size_t resolution = 60;
   const auto [i,j,k] = mesh.data(vtx).spider_idx;
@@ -235,7 +236,7 @@ ZBPatch::getParameters(const BaseMesh::VertexHandle& vtx, Parameter& params) con
   double v = (double)i / (double)j;
 
   auto ep = affine(vertices_nd[prev(k)], v, vertices_nd[k]);
-  params = affine(center, u, ep);
+  params = project(n_, affine(center, u, ep));
 }
 
 size_t
@@ -330,7 +331,7 @@ ZBPatch::project(size_t n, const Parameter& p)
   auto f5 = [&](const Powell::Point& x) {
     for (size_t i = 0; i < 5; ++i)
       if (x[i] < 0)
-        std::numeric_limits<double>::max();
+        return std::numeric_limits<double>::max();
     double err = 0;
     for (size_t i = 0; i < 5; ++i) // 3 should be enough
       err += std::pow(1 - x[i] - x[(i + 2) % n] * x[(i + 3) % n], 2);
@@ -339,7 +340,7 @@ ZBPatch::project(size_t n, const Parameter& p)
   auto f6 = [&](const Powell::Point& x) {
     for (size_t i = 0; i < 6; ++i)
       if (x[i] < 0)
-        std::numeric_limits<double>::max();
+        return std::numeric_limits<double>::max();
     double err = 0;
     for (size_t i = 0; i < 6; ++i) { // 4 should be enough
       double xm = x[(i + n - 1) % n], xi = x[i], xp = x[(i + 1) % n];
@@ -358,6 +359,26 @@ ZBPatch::project(size_t n, const Parameter& p)
   return x;
 }
 
+ZBPatch::Index
+ZBPatch::gb2zb(size_t s, size_t l, size_t c) const
+{
+  Index idx(n_, d_);
+  size_t i = c <= d_/2 ? s : next(s);
+  size_t im1 = prev(i);
+  size_t im2 = prev(im1);
+  size_t ip1 = next(i);
+  idx[im1] = c;
+  idx[i] = l;
+  idx[im2] = d_ - idx[i];
+  idx[ip1] = d_ - idx[im1];
+  auto dj = d_ - std::min(idx[im1], idx[i]);
+  for(size_t j = 0; j < n_; ++j) {
+    if(j != im2 && j != im1 && j != i && j!= ip1){
+      idx[j] = dj;
+    }
+  }
+  return idx;
+}
 
 void
 ZBPatch::draw(const Visualization& vis) const
