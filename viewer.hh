@@ -30,6 +30,7 @@ public:
   void setEnabledSPatch(bool value);
   void setEnabledMPatch(bool value);
   void setEnabledGBPatch(bool value);
+  void setEnabledZBPatch(bool value);
   
   void setShowBlendFunction(bool value);
 

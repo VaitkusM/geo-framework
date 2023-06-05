@@ -16,7 +16,7 @@ NPatch::updateBaseMesh()
   mesh = domain_mesh;
   for(auto vv : domain_mesh.vertices()) {
     auto pt_uv = mesh.point(vv);
-    mesh.point(vv) = evaluateAtParam(pt_uv[0], pt_uv[1]);
+    mesh.point(vv) = evaluateAtParam(vv);
   }
   Object::updateBaseMesh(false, false);
 }
@@ -40,7 +40,9 @@ NPatch::generateSpiderMesh(size_t resolution, BaseMesh &mesh)
         double v = (double)i / (double)j;
         Vector ep = vertices_[prev(k)] * (1.0 - v) + vertices_[k] * v;
         Vector p = center * (1.0 - u) + ep * u;
-        handles.push_back(mesh.add_vertex(p));
+        auto vtx = mesh.add_vertex(p);
+        handles.push_back(vtx);
+        mesh.data(vtx).spider_idx = {i,j,k} ;
       }
     }
   }

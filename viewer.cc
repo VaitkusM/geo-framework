@@ -1,5 +1,6 @@
 #include <QtGui/QKeyEvent>
 
+#include "zbpatch.hh"
 #include "gbpatch.hh"
 #include "mpatch.hh"
 #include "spatch.hh"
@@ -72,6 +73,11 @@ void Viewer::setEnabledMPatch(bool value) {
 
 void Viewer::setEnabledGBPatch(bool value) {
   objects.at("GB-Patch")->enabled = value;
+  update();
+}
+
+void Viewer::setEnabledZBPatch(bool value) {
+  objects.at("ZB-Patch")->enabled = value;
   update();
 }
 
@@ -188,10 +194,12 @@ void Viewer::createPatches()
   objects["S-Patch"] = std::make_shared<SPatch>(5, 3);
   objects["M-Patch"] = std::make_shared<MPatch>(5, 3);
   objects["GB-Patch"] = std::make_shared<GBPatch>(5, 3);
+  objects["ZB-Patch"] = std::make_shared<ZBPatch>(5, 3);
 
   objects["S-Patch"]->enabled  = true;
   objects["M-Patch"]->enabled  = false;
   objects["GB-Patch"]->enabled = false;
+  objects["ZB-Patch"]->enabled = false;
 
   updateMeanMinMax();
   setupCamera();

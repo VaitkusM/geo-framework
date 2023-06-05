@@ -64,6 +64,11 @@ Window::Window(QApplication *parent) :
   gbpatchAction->setChecked(viewer->objects.at("GB-Patch")->enabled);
   connect(gbpatchAction, &QAction::triggered, viewer, &Viewer::setEnabledGBPatch);
 
+  auto zbpatchAction = new QAction(tr("Zheng-Ball Patch"), this);
+  zbpatchAction->setCheckable(true);
+  zbpatchAction->setChecked(viewer->objects.at("ZB-Patch")->enabled);
+  connect(zbpatchAction, &QAction::triggered, viewer, &Viewer::setEnabledZBPatch);
+
   auto showBlendFcnAction = new QAction(tr("Show blend functions"), this);
   showBlendFcnAction->setCheckable(true);
   showBlendFcnAction->setChecked(false);
@@ -91,6 +96,7 @@ Window::Window(QApplication *parent) :
   patchMenu->addAction(spatchAction);
   patchMenu->addAction(mpatchAction);
   patchMenu->addAction(gbpatchAction);
+  patchMenu->addAction(zbpatchAction);
   patchMenu->addSeparator();
   patchMenu->addAction(showBlendFcnAction);
 

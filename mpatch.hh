@@ -17,6 +17,7 @@ public:
   virtual void initDomain() override;
   virtual void initDomainMesh(size_t resolution = 60) override;
   virtual Vector evaluateAtParam(double u, double v) const override;
+  virtual Vector evaluateAtParam(const BaseMesh::VertexHandle& vtx) const override;
   virtual bool reload() override;
 
   virtual void draw(const Visualization& vis) const override;

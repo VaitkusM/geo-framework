@@ -19,6 +19,7 @@ public:
   virtual void initDomain() = 0;
   virtual void initDomainMesh(size_t resolution = 60) = 0;
   virtual Vector evaluateAtParam(double u, double v) const = 0;
+  virtual Vector evaluateAtParam(const BaseMesh::VertexHandle& vtx) const = 0;
 
   void generateSpiderMesh(size_t resolution, BaseMesh &mesh);
 

@@ -100,6 +100,13 @@ GBPatch::initDomainMesh(size_t resolution)
 }
 
 Vector
+GBPatch::evaluateAtParam(const BaseMesh::VertexHandle& vtx) const
+{
+  auto p = domain_mesh.point(vtx);
+  return evaluateAtParam(p[0], p[1]);
+}
+
+Vector
 GBPatch::evaluateAtParam(double u, double v) const
 {
   std::vector<std::vector<DoubleVector> > bf;

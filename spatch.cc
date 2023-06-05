@@ -88,6 +88,13 @@ SPatch::initDomainMesh(size_t resolution)
   generateSpiderMesh(resolution, domain_mesh);
 }
 
+Vector
+SPatch::evaluateAtParam(const BaseMesh::VertexHandle& vtx) const
+{
+  auto p = domain_mesh.point(vtx);
+  return evaluateAtParam(p[0], p[1]);
+}
+
 Vector 
 SPatch::evaluateAtParam(double u, double v) const
 {

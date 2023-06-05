@@ -7,6 +7,7 @@ struct BaseTraits : public OpenMesh::DefaultTraits {
   using Normal = OpenMesh::Vec3d;
   VertexTraits {
     double mean;              // approximated mean curvature
+    std::array<size_t,3> spider_idx;
   };
 };
 

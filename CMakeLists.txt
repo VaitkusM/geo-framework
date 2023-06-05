@@ -38,6 +38,10 @@ if(WITH_JET_FITTING)
   add_definitions(-DUSE_JET_FITTING)
 endif()
 
+set(DFO_INCLUDE_DIRS C:\\Libs\\dfo)
+set(DFO_LIBRARIES C:\\Libs\\dfo\\build\\RelWithDebInfo\\dfo.lib)
+
+
 include_directories(
   .
   ${CGAL_INCLUDE_DIRS}
@@ -47,6 +51,7 @@ include_directories(
   ${Qt6Widgets_INCLUDE_DIRS}
   ${Qt6Xml_INCLUDE_DIRS}
   ${QGLVIEWER_INCLUDE_DIR}
+  ${DFO_INCLUDE_DIRS}
   )
 
 add_executable(geo-framework WIN32
@@ -63,6 +68,7 @@ add_executable(geo-framework WIN32
   spatch.cc
   mpatch.cc
   gbpatch.cc
+  zbpatch.cc
   )
 
 if(WITH_JET_FITTING)
@@ -86,4 +92,5 @@ target_link_libraries(geo-framework PUBLIC
   Qt6::Widgets
   Qt6::Xml
   ${QGLVIEWER_LIBRARY}
+  ${DFO_LIBRARIES}
   )

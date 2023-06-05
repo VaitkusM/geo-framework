@@ -2,14 +2,15 @@
 
 #include "npatch.hh"
 
-class GBPatch : public NPatch {
+class ZBPatch : public NPatch {
 public:
-  using Index = std::array<size_t, 3>;
+  using Index = std::vector<size_t>;
+  using Parameter = DoubleVector;
   using Ribbon = std::vector<std::vector<Vector> >;
 
-  GBPatch(std::string filename);
-  GBPatch(size_t num_sides, size_t num_layers);
-  virtual ~GBPatch();
+  ZBPatch(std::string filename);
+  ZBPatch(size_t num_sides, size_t num_layers);
+  virtual ~ZBPatch();
 
   virtual void initBasicShape() override;
   virtual void initDomain() override;
@@ -23,15 +24,25 @@ public:
   virtual Vector postSelection(int selected) override;
   virtual void movement(int selected, const Vector& pos) override;
 
+  static size_t binomial(size_t n, size_t k);
   static void bernstein(size_t n, double u, DoubleVector& coeff);
-  void getBlendFunctions(double u, double v, std::vector<std::vector<DoubleVector> > &values) const;
+  void getBlendFunctions(const BaseMesh::VertexHandle& vtx, std::map<Index, double>& values) const;
 
   virtual void swapFootpoints() override;
 
-  size_t num_layers() const {return (d_ + 1) / 2;};
+  size_t num_layers() const { return (d_ + 1) / 2; };
+  static size_t numControlPoints(size_t n, size_t m, bool only_inside) {
+    size_t T = m % 2 == 0 ? n * (m - 2) * m / 4 + 1 : n * (m - 1) * (m - 1) / 4;
+    return only_inside ? T : T + n * m;
+  }
   //virtual void setControlPoint(const Index& index, const Vector& p);
 
   std::vector<Index> neighbors(const Index& si) const;
+
+  static DoubleVector affine(const DoubleVector& a, double x, const DoubleVector& b);
+  double coefficient() const;
+  static Parameter project(size_t n, const Parameter& p);
+  void getParameters(const BaseMesh::VertexHandle& vtx, Parameter& params) const;
 
   size_t d_;
   std::map<Index, Vector> footpoints_;

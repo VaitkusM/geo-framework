@@ -79,6 +79,13 @@ MPatch::initDomainMesh(size_t resolution)
 }
 
 Vector
+MPatch::evaluateAtParam(const BaseMesh::VertexHandle& vtx) const
+{
+  auto p = domain_mesh.point(vtx);
+  return evaluateAtParam(p[0], p[1]);
+}
+
+Vector
 MPatch::evaluateAtParam(double u, double v) const
 {
   // return {0,0,0};
