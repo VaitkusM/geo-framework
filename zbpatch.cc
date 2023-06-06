@@ -174,7 +174,8 @@ ZBPatch::getBlendFunctions(const BaseMesh::VertexHandle& vtx, std::map<Index, do
         im = i;
         i = ip;
       }
-      B = binomial(d_, l[im]) * binomial(d_, l[i]);
+      B =  static_cast<double>(binomial(d_, l[im])); 
+      B *= static_cast<double>(binomial(d_, l[i]));
       for (size_t j = 0; j < n_; ++j) {
         B *= std::pow(params[j], l[j]);
       }
