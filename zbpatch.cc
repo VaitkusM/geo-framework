@@ -233,7 +233,7 @@ ZBPatch::getParameters(const BaseMesh::VertexHandle& vtx, Parameter& params) con
   size_t resolution = 60;
   const auto [i,j,k] = mesh.data(vtx).spider_idx;
   double u = (double)j / (double)resolution;
-  double v = (double)i / (double)j;
+  double v = j > 0 ? ((double)i / (double)j) : 0;
 
   auto ep = affine(vertices_nd[prev(k)], v, vertices_nd[k]);
   params = project(n_, affine(center, u, ep));
