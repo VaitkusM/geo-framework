@@ -72,6 +72,16 @@ NPatch::generateSpiderMesh(size_t resolution, BaseMesh &mesh)
   }
 }
 
+NPatch::DoubleVector
+NPatch::getGBCs(double u, double v, BarycentricType type) const
+{
+  DoubleVector gbc(n_);
+  for(size_t i = 0; i < n_; ++i) {
+    gbc[i] = getGBC(u, v, i, type);
+  }
+  return gbc;
+}
+
 double
 NPatch::getGBC(double u, double v, size_t i, BarycentricType type) const
 {

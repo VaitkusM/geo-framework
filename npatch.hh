@@ -9,7 +9,7 @@ public:
   using DoubleVector = std::vector<double>;
   enum class BarycentricType { WACHSPRESS, MEAN_VALUE, HARMONIC };
   enum class BasicShapeType {PARABOLOID, HYPERBOLOID, PLANE};
-  inline static BasicShapeType basic_shape_type = BasicShapeType::PARABOLOID;
+  inline static BasicShapeType basic_shape_type = BasicShapeType::HYPERBOLOID;
 
   NPatch(std::string filename, size_t num_sides = 0);
   virtual ~NPatch();
@@ -24,7 +24,7 @@ public:
   void generateSpiderMesh(size_t resolution, BaseMesh &mesh);
 
   double getGBC(double u, double v, size_t i, BarycentricType type = BarycentricType::WACHSPRESS) const;
-
+  DoubleVector getGBCs(double u, double v, BarycentricType type = BarycentricType::WACHSPRESS) const;
 
   static void normalizeValues(DoubleVector& values);
 
@@ -35,6 +35,6 @@ public:
 
   bool show_basis_fcn;
   size_t n_;
-  BaseMesh domain_mesh;
+  mutable BaseMesh domain_mesh;
   std::vector<Vector> vertices_;
 };

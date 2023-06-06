@@ -241,7 +241,7 @@ void Viewer::draw() {
           qglviewer::Vec screenPos =
             camera()->projectedCoordinatesOf(qglviewer::Vec(pt[0], pt[1], pt[2]));
           QString text("(");
-          const auto& idx = omp->baseMesh().data(vt).spider_idx;
+          const auto& idx = omp->baseMesh().data(vt).gbc;
           for (size_t i = 0; i < idx.size(); ++i) {
             text += QString::number(idx[i]) + (i < (idx.size() - 1) ? "," : ")");
           }

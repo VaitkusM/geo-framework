@@ -23,6 +23,6 @@ protected:
   virtual Vector normal(BaseMesh::VertexHandle vh) const;
   virtual double meanCurvature(BaseMesh::VertexHandle vh) const;
 
-  BaseMesh mesh;
+  mutable BaseMesh mesh;
   std::string filename;
 };

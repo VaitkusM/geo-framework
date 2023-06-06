@@ -122,6 +122,7 @@ ZBPatch::evaluateAtParam(const BaseMesh::VertexHandle& vtx) const
       }
       else {
         if (idx == (selected_idx % net_.size())) {
+          //p = Vector(u, v, mesh.data(vtx).gbc[selected_idx % n_]);
           p = Vector(u, v, Blc);
         }
       }
@@ -160,6 +161,7 @@ ZBPatch::getBlendFunctions(const BaseMesh::VertexHandle& vtx, std::map<Index, do
   values.clear();
   Parameter params;
   getParameters(vtx, params);
+  mesh.data(vtx).gbc = params;
 
   double B, Bsum = 0;
   for (const auto& [l, p] : net_) {
@@ -218,12 +220,20 @@ ZBPatch::getBlendFunctions(const BaseMesh::VertexHandle& vtx, std::map<Index, do
 void 
 ZBPatch::getParameters(const BaseMesh::VertexHandle& vtx, Parameter& params) const
 {
+  // auto p = domain_mesh.point(vtx);
+  // auto gbc = getGBCs(p[0], p[1]);
+  // Parameter h(n_);
+  // for(size_t i = 0; i < n_; ++i) {
+  //   h[i] = 1.0 - gbc[i] - gbc[prev(i)];
+  // }
+  // params = h;//project(n_, h);
+  // return;
   std::vector<DoubleVector> vertices_nd;
   vertices_nd.reserve(n_);
   for (size_t i = 0; i < n_; ++i) {
     DoubleVector v(n_, 1);
+    v[prev(i)] = 0;
     v[i] = 0;
-    v[next(i)] = 0;
     vertices_nd.push_back(v);
   }
   DoubleVector center(n_, n_ == 5 ? (std::sqrt(5) - 1) / 2 : (1.0 / std::sqrt(2)));
@@ -231,12 +241,14 @@ ZBPatch::getParameters(const BaseMesh::VertexHandle& vtx, Parameter& params) con
   //params.reserve(n_);
 
   size_t resolution = 60;
-  const auto [i,j,k] = mesh.data(vtx).spider_idx;
+  const auto [i,j,k] = domain_mesh.data(vtx).spider_idx;
   double u = (double)j / (double)resolution;
   double v = j > 0 ? ((double)i / (double)j) : 0;
 
   auto ep = affine(vertices_nd[prev(k)], v, vertices_nd[k]);
-  params = project(n_, affine(center, u, ep));
+  auto pt = affine(center, u, ep);
+  //params = pt;
+  params = project(n_, pt);
 }
 
 size_t
@@ -351,11 +363,12 @@ ZBPatch::project(size_t n, const Parameter& p)
     return err;
   };
   Powell::Point x = p;
-  for (size_t i = 0; i < 5; ++i)
+  for (size_t i = 0; i < 15; ++i) // increased iteration #
     if (n == 5)
-      Powell::optimize(f5, x, 50, 0.2, 20, 1e-8);
+      Powell::optimize(f5, x, 50, 0.2, 20, 1e-18); // increased tolerance
     else
-      Powell::optimize(f6, x, 50, 0.2, 20, 1e-8);
+      Powell::optimize(f6, x, 50, 0.2, 20, 1e-18);
+  //std::cerr << "Error: " << f5(x) << std::endl; 
   return x;
 }
 
