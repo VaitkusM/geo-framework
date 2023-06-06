@@ -69,6 +69,11 @@ Window::Window(QApplication *parent) :
   zbpatchAction->setChecked(viewer->objects.at("ZB-Patch")->enabled);
   connect(zbpatchAction, &QAction::triggered, viewer, &Viewer::setEnabledZBPatch);
 
+  auto toricpatchAction = new QAction(tr("Toric Patch"), this);
+  toricpatchAction->setCheckable(true);
+  toricpatchAction->setChecked(viewer->objects.at("Toric Patch")->enabled);
+  connect(toricpatchAction, &QAction::triggered, viewer, &Viewer::setEnabledToricPatch);
+
   auto showBlendFcnAction = new QAction(tr("Show blend functions"), this);
   showBlendFcnAction->setCheckable(true);
   showBlendFcnAction->setChecked(false);
@@ -101,6 +106,7 @@ Window::Window(QApplication *parent) :
   patchMenu->addAction(mpatchAction);
   patchMenu->addAction(gbpatchAction);
   patchMenu->addAction(zbpatchAction);
+  patchMenu->addAction(toricpatchAction);
   patchMenu->addSeparator();
   patchMenu->addAction(showBlendFcnAction);
 

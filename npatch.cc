@@ -33,7 +33,7 @@ NPatch::generateSpiderMesh(size_t resolution, BaseMesh &mesh)
   handles.reserve(meshSize);
 
   // Adding vertices
-  Vector center = Vector(0.0, 0.0, 0.0);
+  auto center = getDomainCenter();
   auto vtx = mesh.add_vertex(center);
   handles.push_back(vtx);
   mesh.data(vtx).spider_idx = {0, 0, 0};
@@ -152,6 +152,17 @@ NPatch::getGBC(double u, double v, size_t i, BarycentricType type) const
   else {
     return l[i];
   }
+}
+
+Vector
+NPatch::getDomainCenter() const
+{
+  Vector center(0.0, 0.0, 0.0);
+  for (const auto& v : vertices_) {
+    center += v;
+  }
+  center /= n_;
+  return center;
 }
 
 void NPatch::normalizeValues(DoubleVector& values)

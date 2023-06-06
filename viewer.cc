@@ -1,5 +1,6 @@
 #include <QtGui/QKeyEvent>
 
+#include "toricpatch.hh"
 #include "zbpatch.hh"
 #include "gbpatch.hh"
 #include "mpatch.hh"
@@ -78,6 +79,11 @@ void Viewer::setEnabledGBPatch(bool value) {
 
 void Viewer::setEnabledZBPatch(bool value) {
   objects.at("ZB-Patch")->enabled = value;
+  update();
+}
+
+void Viewer::setEnabledToricPatch(bool value) {
+  objects.at("Toric Patch")->enabled = value;
   update();
 }
 
@@ -207,11 +213,13 @@ void Viewer::createPatches()
   objects["M-Patch"] = std::make_shared<MPatch>(5, 3);
   objects["GB-Patch"] = std::make_shared<GBPatch>(5, 3);
   objects["ZB-Patch"] = std::make_shared<ZBPatch>(5, 3);
+  objects["Toric Patch"] = std::make_shared<ToricPatch>(5, 3);
 
   objects["S-Patch"]->enabled  = true;
   objects["M-Patch"]->enabled  = false;
   objects["GB-Patch"]->enabled = false;
   objects["ZB-Patch"]->enabled = false;
+  objects["Toric Patch"]->enabled = false;
 
   updateMeanMinMax();
   setupCamera();

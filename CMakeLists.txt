@@ -69,6 +69,7 @@ add_executable(geo-framework WIN32
   mpatch.cc
   gbpatch.cc
   zbpatch.cc
+  toricpatch.cc
   )
 
 if(WITH_JET_FITTING)
