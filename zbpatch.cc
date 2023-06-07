@@ -105,7 +105,7 @@ Vector
 ZBPatch::evaluateAtParam(const BaseMesh::VertexHandle& vtx) const
 {
   //return domain_mesh.point(vtx);
-  std::map<Index, double> bf = blend_functions_[vtx.idx()];
+  const auto& bf = blend_functions_[vtx.idx()];
   //getBlendFunctions(vtx, bf);
   double u = domain_mesh.point(vtx)[0];
   double v = domain_mesh.point(vtx)[1];

@@ -30,6 +30,9 @@ public:
   static size_t multinomial(const Index &index);
   static double multiBernstein(const Index &index, const DoubleVector &bc);
   static std::vector<Index> indices(size_t n, size_t d);
+  void initBlendFunctions();
+  void getBlendFunctions(const BaseMesh::VertexHandle& vtx, std::map<Index, double>& values) const;
+  void getBlendFunctions(double u, double v, std::map<Index, double>& values) const;
   
   std::vector<Index> neighbors(const Index& si) const;
 
@@ -38,4 +41,5 @@ public:
   size_t d_;
   std::map<Index, Vector> footpoints_;
   std::map<Index, Vector> net_;
+  std::vector<std::map<Index, double> > blend_functions_;
 };

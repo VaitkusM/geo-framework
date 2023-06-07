@@ -106,7 +106,7 @@ GBPatch::initDomainMesh(size_t resolution)
 Vector
 GBPatch::evaluateAtParam(const BaseMesh::VertexHandle& vtx) const
 {
-  std::vector<std::vector<DoubleVector> > bf = blend_functions_[vtx.idx()];
+  const auto &bf = blend_functions_[vtx.idx()];
   auto uv = domain_mesh.point(vtx);
   auto u = uv[0], v = uv[1];
   size_t nl = num_layers();
@@ -158,7 +158,52 @@ GBPatch::evaluateAtParam(const BaseMesh::VertexHandle& vtx) const
 Vector
 GBPatch::evaluateAtParam(double u, double v) const
 {
-  return Vector();
+  std::vector<std::vector<DoubleVector> > bf;
+  getBlendFunctions(u ,v, bf);
+  size_t nl = num_layers();
+  Vector p(0, 0, 0);
+  double sum = 0.0;
+  size_t idx = 0;
+  for (const auto& [id, cp] : net_) {
+
+    auto [i, l, c] = id;
+
+    if (i < n_) {
+      double Blc = bf[i][l][c] + bf[prev(i)][c][d_ - l];
+      if (!show_basis_fcn) {
+        p += Blc * cp;
+      }
+      else {
+        if (idx == (selected_idx % net_.size())) {
+          p = Vector(u, v, Blc);
+        }
+      }
+      sum += Blc;
+      ++idx;
+    }
+  }
+
+  if (!normalized) {
+    if (!show_basis_fcn) {
+      auto ccp = net_.at({ n_,0,0 });
+      p += (1.0 - sum) * ccp;
+    }
+    else {
+      if (idx == (selected_idx % net_.size())) {
+        p = Vector(u, v, 1.0 - sum);
+        ++idx;
+      }
+    }
+  }
+  else {
+    if (!show_basis_fcn) {
+      p /= sum;
+    }
+    else {
+      p[2] /= sum;
+    }
+  }
+  return p;
 }
 
 void

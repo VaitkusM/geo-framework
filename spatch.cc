@@ -24,6 +24,7 @@ SPatch::SPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_sides)
   footpoints_ = net_;
 
   initBasicShape();
+  initBlendFunctions();
   
   updateBaseMesh();
 
@@ -94,8 +95,23 @@ SPatch::initDomainMesh(size_t resolution)
 Vector
 SPatch::evaluateAtParam(const BaseMesh::VertexHandle& vtx) const
 {
-  auto p = domain_mesh.point(vtx);
-  return evaluateAtParam(p[0], p[1]);
+  const auto &bf = blend_functions_[vtx.idx()];
+  auto uv = domain_mesh.point(vtx);
+  auto u = uv[0], v = uv[1];
+  Vector p(0, 0, 0);
+  size_t cp_idx = 0;
+  for (const auto& [id,cp] : net_) {
+    if (!show_basis_fcn) {
+      p += cp * bf.at(id);
+    }
+    else {
+      if (cp_idx++ == (selected_idx % net_.size())) {
+        p += Vector(u, v, bf.at(id));
+        break;
+      }
+    }
+  }
+  return p;
 }
 
 Vector 
@@ -119,6 +135,34 @@ SPatch::evaluateAtParam(double u, double v) const
     }
   }
   return p;
+}
+
+void
+SPatch::initBlendFunctions()
+{
+  blend_functions_.clear();
+  blend_functions_.resize(domain_mesh.n_vertices());
+  for (auto vtx : domain_mesh.vertices()) {
+    auto pt = domain_mesh.point(vtx);
+    getBlendFunctions(pt[0], pt[1], blend_functions_[vtx.idx()]);
+  }
+}
+
+void
+SPatch::getBlendFunctions(const BaseMesh::VertexHandle& vtx, std::map<Index, double>& values) const
+{
+  auto p = domain_mesh.point(vtx);
+  getBlendFunctions(p[0], p[1], values);
+}
+
+void
+SPatch::getBlendFunctions(double u, double v, std::map<Index, double>& values) const
+{
+  values.clear();
+  auto bc = getGBCs(u ,v);
+  for(const auto& [id,cp]: net_) {
+    values[id] = multiBernstein(id, bc);
+  }
 }
 
 size_t

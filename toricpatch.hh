@@ -27,6 +27,8 @@ public:
   size_t coefficient(const Index & idx) const;
   static void bernstein(size_t n, double u, DoubleVector& coeff);
   double sideDistance(double u, double v, size_t i) const;
+  void initBlendFunctions();
+  void getBlendFunctions(const BaseMesh::VertexHandle& vtx, std::map<Index, double>& values) const;
   void getBlendFunctions(double u, double v, std::map<Index, double>& values) const;
 
   virtual void swapFootpoints() override;
@@ -41,6 +43,6 @@ public:
   std::map<Index, Vector> net_;
   std::map<Index, std::vector<size_t>> ld_;
   std::vector<std::array<double, 3> > side_eqs_;
-  std::vector<std::map<Index, double>> blend_functions;
+  std::vector<std::map<Index, double>> blend_functions_;
   bool normalized;
 };

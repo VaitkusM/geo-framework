@@ -37,18 +37,17 @@ ToricPatch::ToricPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.trp", n
 
   footpoints_ = net_;
 
-  initBasicShape();
-  
   ld_.clear();
-  for(auto& [id,pt] : net_) {
+  for (auto& [id, pt] : net_) {
     std::vector<size_t> d(n_);
-    for(size_t i = 0; i < n_; ++i) {
+    for (size_t i = 0; i < n_; ++i) {
       d[i] = static_cast<size_t>(std::round(sideDistance(std::round(id[0]), std::round(id[1]), i)));
     }
     ld_[id] = d;
   }
 
-
+  initBasicShape();
+  initBlendFunctions();
 
   // std::cerr << "Number of CPs:" << net_.size() << std::endl;
 
@@ -123,9 +122,26 @@ ToricPatch::initDomainMesh(size_t resolution)
 Vector
 ToricPatch::evaluateAtParam(const BaseMesh::VertexHandle& vtx) const
 {
-  //return Vector();
-  auto p = domain_mesh.point(vtx);
-  return evaluateAtParam(p[0], p[1]);
+  const auto &bf = blend_functions_[vtx.idx()];
+  auto uv = domain_mesh.point(vtx);
+  auto u = uv[0], v = uv[1];
+  size_t nl = num_layers();
+  Vector p(0, 0, 0);
+  size_t idx = 0;
+  for (const auto& [id, cp] : net_) {
+    double Bi = bf.at(id);
+    if (!show_basis_fcn) {
+      p += Bi * cp;
+    }
+    else {
+      if (idx == (selected_idx % net_.size())) {
+        p = Vector(u, v, Bi);
+      }
+    }
+    ++idx;
+  }
+
+  return p;
 }
 
 Vector
@@ -136,7 +152,6 @@ ToricPatch::evaluateAtParam(double u, double v) const
 
   size_t nl = num_layers();
   Vector p(0, 0, 0);
-  //double sum = 0.0;
   size_t idx = 0;
   for (const auto& [id, cp] : net_) {
     double Bi = bf[id];
@@ -148,13 +163,27 @@ ToricPatch::evaluateAtParam(double u, double v) const
         p = Vector(u, v, Bi);
       }
     }
-    //sum += Bi;
     ++idx;
   }
 
-  //p /= sum;
-
   return p;
+}
+
+void
+ToricPatch::initBlendFunctions()
+{
+  blend_functions_.clear();
+  blend_functions_.resize(domain_mesh.n_vertices());
+  for (auto vtx : domain_mesh.vertices()) {
+    getBlendFunctions(vtx, blend_functions_[vtx.idx()]);
+  }
+}
+
+void
+ToricPatch::getBlendFunctions(const BaseMesh::VertexHandle& vtx, std::map<Index, double>& values) const
+{
+  auto p = domain_mesh.point(vtx);
+  getBlendFunctions(p[0], p[1], values);
 }
 
 void
