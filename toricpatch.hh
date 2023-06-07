@@ -8,7 +8,7 @@ public:
   using Ribbon = std::vector<std::vector<Vector> >;
 
   ToricPatch(std::string filename);
-  ToricPatch(size_t num_sides, size_t num_layers);
+  ToricPatch(size_t num_sides, size_t num_layers, bool warren = false);
   virtual ~ToricPatch();
 
   virtual void initBasicShape() override;
@@ -45,4 +45,5 @@ public:
   std::vector<std::array<double, 3> > side_eqs_;
   std::vector<std::map<Index, double>> blend_functions_;
   bool normalized;
+  bool warren_;
 };

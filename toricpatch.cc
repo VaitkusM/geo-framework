@@ -5,20 +5,11 @@ ToricPatch::ToricPatch(std::string filename) : NPatch(filename)
   reload();
 }
 
-ToricPatch::ToricPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.trp", num_sides), d_(depth), normalized(false)
+ToricPatch::ToricPatch(size_t num_sides, size_t depth, bool warren) : NPatch("NOTHING.trp", num_sides), d_(depth), normalized(false), warren_(warren)
 {
   initDomain();
 
   net_.clear();
-  double large = std::numeric_limits<double>::max();
-  Vector box_min(large, large, large), box_max(-large, -large, -large);
-  for (auto v : vertices_) {
-    box_min.minimize(v);
-    box_max.maximize(v);
-  }
-  tdu_ = static_cast<size_t>(std::round(box_max[0] - box_min[0]));
-  tdv_ = static_cast<size_t>(std::round(box_max[1] - box_min[1]));
-
 
   for (size_t i = 0; i <= tdu_; ++i) {
     for(size_t j = 0; j <= tdv_; ++j) {
@@ -33,7 +24,6 @@ ToricPatch::ToricPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.trp", n
       }
     }
   }
-
 
   footpoints_ = net_;
 
@@ -97,20 +87,46 @@ ToricPatch::initDomain()
   vertices_[3] = {d_, d_ + d_, 0};
   vertices_[4] = {0, d_, 0};
 
+  double large = std::numeric_limits<double>::max();
+  Vector box_min(large, large, large), box_max(-large, -large, -large);
+  for (auto v : vertices_) {
+    box_min.minimize(v);
+    box_max.maximize(v);
+  }
+  tdu_ = static_cast<size_t>(std::round(box_max[0] - box_min[0]));
+  tdv_ = static_cast<size_t>(std::round(box_max[1] - box_min[1]));
+
   side_eqs_.clear();
   side_eqs_.reserve(n_);
-  for(size_t i = 0; i < n_; ++i) {
+  for (size_t i = 0; i < n_; ++i) {
     auto v0 = vertices_[i];
     auto v1 = vertices_[next(i)];
     auto d = v1 - v0;
     auto r = Vector(-d[1], d[0], 0);
     auto g = std::gcd(static_cast<size_t>(std::round(std::abs(r[0]))), static_cast<size_t>(std::round(std::abs(r[1]))));
     r /= g;
-    side_eqs_.push_back({r[0],r[1],-(r[0]*v0[0] + r[1]*v0[1])});
+    side_eqs_.push_back({ r[0],r[1],-(r[0] * v0[0] + r[1] * v0[1]) });
     std::cerr << "side_eq " << i << " : (" << side_eqs_[i][0] << ", " << side_eqs_[i][1] << ", " << side_eqs_[i][2] << ")" << std::endl;
   }
 
-  initDomainMesh();
+  if(!warren_) {
+    initDomainMesh();
+  }
+  else {
+    auto temp_v = vertices_;
+    auto temp_n = n_;
+    n_ = 4;
+    vertices_.resize(4);
+    vertices_[0] = Vector(0,0,0);
+    vertices_[1] = Vector(tdu_, 0, 0);
+    vertices_[2] = Vector(tdu_, tdv_, 0);
+    vertices_[3] = Vector(0, tdv_, 0);
+    initDomainMesh();
+    vertices_ = temp_v;
+    n_ = temp_n;
+  }
+
+
 }
 
 void
@@ -190,15 +206,24 @@ void
 ToricPatch::getBlendFunctions(double u, double v, std::map<Index, double>& values) const
 {
   values.clear();
+  DoubleVector Bu, Bv;
+  bernstein(tdu_, u / tdu_, Bu);
+  bernstein(tdv_, v / tdv_, Bv);
   double sum = 0.0;
   for (const auto& [id, cp] : net_) {
     double B = 1.0;
-    B *= coefficient(id);
-    const auto& ld = ld_.at(id);
-    for (size_t i = 0; i < n_; ++i) {
-      auto luv = sideDistance(u, v, i);
-      auto lab = ld[i];
-      B *= std::pow(luv, lab);
+    if(!warren_) {
+      B *= coefficient(id);
+      const auto& ld = ld_.at(id);
+      for (size_t i = 0; i < n_; ++i) {
+        auto luv = sideDistance(u, v, i);
+        auto lab = ld[i];
+        B *= std::pow(luv, lab);
+      }
+    }
+    else {
+      B *= Bu[id[0]];
+      B *= Bv[id[1]];
     }
     values[id] = B;
     sum += B;

@@ -87,6 +87,11 @@ void Viewer::setEnabledToricPatch(bool value) {
   update();
 }
 
+void Viewer::setEnabledWarrenPatch(bool value) {
+  objects.at("Warren Patch")->enabled = value;
+  update();
+}
+
 void Viewer::incrementIdxForAll() {
   for (auto& [id, o] : objects) {
     incrementIdx(id);
@@ -213,13 +218,15 @@ void Viewer::createPatches()
   objects["M-Patch"] = std::make_shared<MPatch>(5, 3);
   objects["GB-Patch"] = std::make_shared<GBPatch>(5, 3);
   objects["ZB-Patch"] = std::make_shared<ZBPatch>(5, 3);
-  objects["Toric Patch"] = std::make_shared<ToricPatch>(5, 3);
+  objects["Toric Patch"] = std::make_shared<ToricPatch>(5, 3, false);
+  objects["Warren Patch"] = std::make_shared<ToricPatch>(5, 3, true);
 
   objects["S-Patch"]->enabled  = true;
   objects["M-Patch"]->enabled  = false;
   objects["GB-Patch"]->enabled = false;
   objects["ZB-Patch"]->enabled = false;
   objects["Toric Patch"]->enabled = false;
+  objects["Warren Patch"]->enabled = false;
 
   updateMeanMinMax();
   setupCamera();

@@ -76,6 +76,11 @@ Window::Window(QApplication *parent) :
   toricpatchAction->setChecked(obs.find("Toric Patch") == obs.end() ? false : obs.at("Toric Patch")->enabled);
   connect(toricpatchAction, &QAction::triggered, viewer, &Viewer::setEnabledToricPatch);
 
+  auto warrenpatchAction = new QAction(tr("Warren Patch"), this);
+  warrenpatchAction->setCheckable(true);
+  warrenpatchAction->setChecked(obs.find("Warren Patch") == obs.end() ? false : obs.at("Warren Patch")->enabled);
+  connect(warrenpatchAction, &QAction::triggered, viewer, &Viewer::setEnabledWarrenPatch);
+
   auto showBlendFcnAction = new QAction(tr("Show blend functions"), this);
   showBlendFcnAction->setCheckable(true);
   showBlendFcnAction->setChecked(false);
@@ -109,6 +114,7 @@ Window::Window(QApplication *parent) :
   patchMenu->addAction(gbpatchAction);
   patchMenu->addAction(zbpatchAction);
   patchMenu->addAction(toricpatchAction);
+  patchMenu->addAction(warrenpatchAction);
   patchMenu->addSeparator();
   patchMenu->addAction(showBlendFcnAction);
 

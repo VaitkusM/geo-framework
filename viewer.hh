@@ -32,6 +32,7 @@ public:
   void setEnabledGBPatch(bool value);
   void setEnabledZBPatch(bool value);
   void setEnabledToricPatch(bool value);
+  void setEnabledWarrenPatch(bool value);
   
   void setShowBlendFunction(bool value);
 
