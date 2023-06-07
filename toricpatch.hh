@@ -23,6 +23,8 @@ public:
   virtual Vector postSelection(int selected) override;
   virtual void movement(int selected, const Vector& pos) override;
 
+  static size_t binomial(size_t n, size_t k);
+  size_t coefficient(const Index & idx) const;
   static void bernstein(size_t n, double u, DoubleVector& coeff);
   double sideDistance(double u, double v, size_t i) const;
   void getBlendFunctions(double u, double v, std::map<Index, double>& values) const;
@@ -37,6 +39,7 @@ public:
   size_t d_, tdu_, tdv_;
   std::map<Index, Vector> footpoints_;
   std::map<Index, Vector> net_;
+  std::map<Index, std::vector<size_t>> ld_;
   std::vector<std::array<double, 3> > side_eqs_;
   bool normalized;
 };

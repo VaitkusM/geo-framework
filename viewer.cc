@@ -230,31 +230,33 @@ void Viewer::draw() {
     if(o->enabled) {
       o->draw(vis);
 
-      if(false && o->get_filename().ends_with(".zb")) {
+      if(false && o->get_filename().ends_with(".trp")) {
         // drawArrow({ 0.0, 0.0, 0.0 }, { 1.0, 0.0, 0.0 });
         // drawArrow({ 0.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 });
         // drawArrow({ 0.0, 0.0, 0.0 }, { 0.0, 0.0, 1.0 });
-        auto omp = std::static_pointer_cast<ZBPatch>(o);
-        // for(auto [idx,pt]: omp->net_) {
-        //   qglviewer::Vec screenPos =
-        //     camera()->projectedCoordinatesOf(qglviewer::Vec(pt[0], pt[1], pt[2]));
-        //   QString text("(");
-        //   for(size_t i = 0; i < idx.size(); ++i) {
-        //     text+= QString::number(idx[i]) + (i < (idx.size() - 1) ? "," : ")");
-        //   }
-        //   drawText((int)screenPos[0], (int)screenPos[1], text);
-        // }
-        for(auto vt : omp->baseMesh().vertices()) {
-          auto pt = omp->baseMesh().point(vt);
+        auto omp = std::static_pointer_cast<ToricPatch>(o);
+        for(auto [idx,pt]: omp->net_) {
           qglviewer::Vec screenPos =
             camera()->projectedCoordinatesOf(qglviewer::Vec(pt[0], pt[1], pt[2]));
           QString text("(");
-          const auto& idx = omp->baseMesh().data(vt).gbc;
-          for (size_t i = 0; i < idx.size(); ++i) {
-            text += QString::number(idx[i]) + (i < (idx.size() - 1) ? "," : ")");
+          auto ld = omp->ld_[idx];
+          for(size_t i = 0; i < ld.size(); ++i) {
+            //text += QString::number(omp->coefficient(idx)) + ")";
+            text += QString::number(ld[i]) + (i < (ld.size() - 1) ? "," : ")");
           }
           drawText((int)screenPos[0], (int)screenPos[1], text);
         }
+        // for(auto vt : omp->baseMesh().vertices()) {
+        //   auto pt = omp->baseMesh().point(vt);
+        //   qglviewer::Vec screenPos =
+        //     camera()->projectedCoordinatesOf(qglviewer::Vec(pt[0], pt[1], pt[2]));
+        //   QString text("(");
+        //   const auto& idx = omp->baseMesh().data(vt).gbc;
+        //   for (size_t i = 0; i < idx.size(); ++i) {
+        //     text += QString::number(idx[i]) + (i < (idx.size() - 1) ? "," : ")");
+        //   }
+        //   drawText((int)screenPos[0], (int)screenPos[1], text);
+        // }
       }
     }
   }
