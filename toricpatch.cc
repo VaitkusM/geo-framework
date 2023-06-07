@@ -165,10 +165,11 @@ ToricPatch::getBlendFunctions(double u, double v, std::map<Index, double>& value
   for (const auto& [id, cp] : net_) {
     double B = 1.0;
     B *= coefficient(id);
+    auto ld = ld_.at(id);
     for (size_t i = 0; i < n_; ++i) {
       auto luv = sideDistance(u, v, i);
-      auto lab = sideDistance(static_cast<double>(id[0]), static_cast<double>(id[1]), i);
-      B *= std::pow(luv, static_cast<size_t>(std::round(lab)));
+      auto lab = ld[i];
+      B *= std::pow(luv, lab);
     }
     values[id] = B;
     sum += B;
