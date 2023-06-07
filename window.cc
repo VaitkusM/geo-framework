@@ -49,29 +49,31 @@ Window::Window(QApplication *parent) :
   slicingAction->setStatusTip(tr("Set contouring direction and scaling"));
   connect(slicingAction, &QAction::triggered, this, &Window::setSlicing);
 
+  const auto &obs = viewer->objects;
+
   auto spatchAction = new QAction(tr("S-Patch"), this);
   spatchAction->setCheckable(true);
-  spatchAction->setChecked(viewer->objects.at("S-Patch")->enabled);
+  spatchAction->setChecked(obs.find("S-Patch") == obs.end() ? false : obs.at("S-Patch")->enabled);
   connect(spatchAction, &QAction::triggered, viewer, &Viewer::setEnabledSPatch);
 
   auto mpatchAction = new QAction(tr("M-Patch"), this);
   mpatchAction->setCheckable(true);
-  mpatchAction->setChecked(viewer->objects.at("M-Patch")->enabled);
+  mpatchAction->setChecked(obs.find("M-Patch") == obs.end() ? false : obs.at("M-Patch")->enabled);
   connect(mpatchAction, &QAction::triggered, viewer, &Viewer::setEnabledMPatch);
 
   auto gbpatchAction = new QAction(tr("GB-Patch"), this);
   gbpatchAction->setCheckable(true);
-  gbpatchAction->setChecked(viewer->objects.at("GB-Patch")->enabled);
+  gbpatchAction->setChecked(obs.find("GB-Patch") == obs.end() ? false : obs.at("GB-Patch")->enabled);
   connect(gbpatchAction, &QAction::triggered, viewer, &Viewer::setEnabledGBPatch);
 
   auto zbpatchAction = new QAction(tr("Zheng-Ball Patch"), this);
   zbpatchAction->setCheckable(true);
-  zbpatchAction->setChecked(viewer->objects.at("ZB-Patch")->enabled);
+  zbpatchAction->setChecked(obs.find("ZB-Patch") == obs.end() ? false : obs.at("ZB-Patch")->enabled);
   connect(zbpatchAction, &QAction::triggered, viewer, &Viewer::setEnabledZBPatch);
 
   auto toricpatchAction = new QAction(tr("Toric Patch"), this);
   toricpatchAction->setCheckable(true);
-  toricpatchAction->setChecked(viewer->objects.at("Toric Patch")->enabled);
+  toricpatchAction->setChecked(obs.find("Toric Patch") == obs.end() ? false : obs.at("Toric Patch")->enabled);
   connect(toricpatchAction, &QAction::triggered, viewer, &Viewer::setEnabledToricPatch);
 
   auto showBlendFcnAction = new QAction(tr("Show blend functions"), this);

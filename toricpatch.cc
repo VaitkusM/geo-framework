@@ -165,7 +165,7 @@ ToricPatch::getBlendFunctions(double u, double v, std::map<Index, double>& value
   for (const auto& [id, cp] : net_) {
     double B = 1.0;
     B *= coefficient(id);
-    auto ld = ld_.at(id);
+    const auto& ld = ld_.at(id);
     for (size_t i = 0; i < n_; ++i) {
       auto luv = sideDistance(u, v, i);
       auto lab = ld[i];
@@ -202,8 +202,9 @@ ToricPatch::coefficient(const Index& idx) const
 {
   size_t i;
   bool inside = true;
+  const auto& ld = ld_.at(idx);
   for(i = 0; i < n_; i++) {
-    if(sideDistance(static_cast<double>(idx[0]), static_cast<double>(idx[1]), i) == 0) {
+    if(ld[i] == 0) {
       inside = false;
       break;
     }

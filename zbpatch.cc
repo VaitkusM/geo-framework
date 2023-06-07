@@ -48,6 +48,7 @@ ZBPatch::ZBPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.zb", num_side
   footpoints_ = net_;
 
   initBasicShape();
+  initBlendFunctions();
 
   // std::cerr << "Number of CPs:" << net_.size() << std::endl;
 
@@ -104,8 +105,8 @@ Vector
 ZBPatch::evaluateAtParam(const BaseMesh::VertexHandle& vtx) const
 {
   //return domain_mesh.point(vtx);
-  std::map<Index, double> bf;
-  getBlendFunctions(vtx, bf);
+  std::map<Index, double> bf = blend_functions_[vtx.idx()];
+  //getBlendFunctions(vtx, bf);
   double u = domain_mesh.point(vtx)[0];
   double v = domain_mesh.point(vtx)[1];
 
@@ -156,12 +157,26 @@ ZBPatch::evaluateAtParam(double u, double v) const
 }
 
 void
+ZBPatch::initBlendFunctions()
+{
+  params_.clear();
+  params_.resize(domain_mesh.n_vertices());
+  blend_functions_.clear();
+  blend_functions_.resize(domain_mesh.n_vertices());
+  for(auto vtx : domain_mesh.vertices()) {
+    getParameters(vtx, params_[vtx.idx()]);
+    getBlendFunctions(vtx, blend_functions_[vtx.idx()]);
+  }
+}
+
+void
 ZBPatch::getBlendFunctions(const BaseMesh::VertexHandle& vtx, std::map<Index, double>& values) const
 {
   values.clear();
-  Parameter params;
-  getParameters(vtx, params);
-  mesh.data(vtx).gbc = params;
+  // Parameter params;
+  // getParameters(vtx, params);
+  const auto& params = params_[vtx.idx()];
+  // mesh.data(vtx).gbc = params;
 
   double B, Bsum = 0;
   for (const auto& [l, p] : net_) {

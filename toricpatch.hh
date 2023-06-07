@@ -41,5 +41,6 @@ public:
   std::map<Index, Vector> net_;
   std::map<Index, std::vector<size_t>> ld_;
   std::vector<std::array<double, 3> > side_eqs_;
+  std::vector<std::map<Index, double>> blend_functions;
   bool normalized;
 };

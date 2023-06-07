@@ -26,6 +26,7 @@ public:
 
   static size_t binomial(size_t n, size_t k);
   static void bernstein(size_t n, double u, DoubleVector& coeff);
+  void initBlendFunctions();
   void getBlendFunctions(const BaseMesh::VertexHandle& vtx, std::map<Index, double>& values) const;
 
   virtual void swapFootpoints() override;
@@ -48,5 +49,7 @@ public:
   size_t d_;
   std::map<Index, Vector> footpoints_;
   std::map<Index, Vector> net_;
+  std::vector<Parameter> params_;
+  std::vector<std::map<Index, double>> blend_functions_;
   bool normalized;
 };
