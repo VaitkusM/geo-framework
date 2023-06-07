@@ -24,6 +24,7 @@ public:
   virtual void movement(int selected, const Vector& pos) override;
 
   static void bernstein(size_t n, double u, DoubleVector& coeff);
+  void initBlendFunctions();
   void getBlendFunctions(double u, double v, std::vector<std::vector<DoubleVector> > &values) const;
 
   virtual void swapFootpoints() override;
@@ -36,5 +37,6 @@ public:
   size_t d_;
   std::map<Index, Vector> footpoints_;
   std::map<Index, Vector> net_;
+  std::vector<std::vector<std::vector<DoubleVector>>> blend_functions_;
   bool normalized;
 };

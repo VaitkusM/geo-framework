@@ -29,6 +29,7 @@ public:
   static size_t multinomial(const Index& index);
   static double multiBernstein(const Index& index, const DoubleVector& bc);
 
+  void initBlendFunctions();
   void getBlendFunctions(double u, double v, DoubleVector &values, bool normalize = true) const;
   double getBlendFunctionUnnormalized(double u, double v, const Index &i) const;
 
@@ -41,4 +42,5 @@ public:
   size_t d_;
   std::map<Index, Vector> footpoints_;
   std::map<Index, Vector> net_;
+  std::vector<DoubleVector> blend_functions_;
 };

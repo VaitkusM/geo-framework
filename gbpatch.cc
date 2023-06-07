@@ -50,6 +50,7 @@ GBPatch::GBPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.sp", num_side
   footpoints_ = net_;
 
   initBasicShape();
+  initBlendFunctions();
 
   // std::cerr << "Number of CPs:" << net_.size() << std::endl;
 
@@ -105,25 +106,18 @@ GBPatch::initDomainMesh(size_t resolution)
 Vector
 GBPatch::evaluateAtParam(const BaseMesh::VertexHandle& vtx) const
 {
-  auto p = domain_mesh.point(vtx);
-  return evaluateAtParam(p[0], p[1]);
-}
-
-Vector
-GBPatch::evaluateAtParam(double u, double v) const
-{
-  std::vector<std::vector<DoubleVector> > bf;
-  getBlendFunctions(u, v, bf);
-
+  std::vector<std::vector<DoubleVector> > bf = blend_functions_[vtx.idx()];
+  auto uv = domain_mesh.point(vtx);
+  auto u = uv[0], v = uv[1];
   size_t nl = num_layers();
   Vector p(0, 0, 0);
   double sum = 0.0;
   size_t idx = 0;
-  for(const auto& [id,cp] : net_) {
-    
-    auto [i,l,c] = id;
+  for (const auto& [id, cp] : net_) {
 
-    if(i < n_) {
+    auto [i, l, c] = id;
+
+    if (i < n_) {
       double Blc = bf[i][l][c] + bf[prev(i)][c][d_ - l];
       if (!show_basis_fcn) {
         p += Blc * cp;
@@ -138,10 +132,10 @@ GBPatch::evaluateAtParam(double u, double v) const
     }
   }
 
-  if(!normalized) {
-    if(!show_basis_fcn) {
+  if (!normalized) {
+    if (!show_basis_fcn) {
       auto ccp = net_.at({ n_,0,0 });
-      p += (1.0 - sum)*ccp;
+      p += (1.0 - sum) * ccp;
     }
     else {
       if (idx == (selected_idx % net_.size())) {
@@ -151,9 +145,31 @@ GBPatch::evaluateAtParam(double u, double v) const
     }
   }
   else {
-    p /= sum;
+    if (!show_basis_fcn) {
+      p /= sum;
+    }
+    else {
+      p[2] /= sum;
+    }
   }
   return p;
+}
+
+Vector
+GBPatch::evaluateAtParam(double u, double v) const
+{
+  return Vector();
+}
+
+void
+GBPatch::initBlendFunctions()
+{
+  blend_functions_.clear();
+  blend_functions_.resize(domain_mesh.n_vertices());
+  for (auto vtx : domain_mesh.vertices()) {
+    auto pt = domain_mesh.point(vtx);
+    getBlendFunctions(pt[0], pt[1], blend_functions_[vtx.idx()]);
+  }
 }
 
 void
