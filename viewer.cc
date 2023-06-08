@@ -217,7 +217,7 @@ void Viewer::createPatches()
   objects["S-Patch"] = std::make_shared<SPatch>(5, 3);
   objects["M-Patch"] = std::make_shared<MPatch>(5, 3);
   objects["GB-Patch"] = std::make_shared<GBPatch>(5, 3);
-  objects["ZB-Patch"] = std::make_shared<ZBPatch>(5, 3);
+  objects["ZB-Patch"] = std::make_shared<ZBPatch>(5, 3, false);
   objects["Toric Patch"] = std::make_shared<ToricPatch>(5, 3, false);
   objects["Warren Patch"] = std::make_shared<ToricPatch>(5, 3, true);
 
@@ -417,6 +417,13 @@ void Viewer::keyPressEvent(QKeyEvent *e) {
       break;
     case Qt::Key_B:
       incrementIdxForAll();
+      update();
+      break;
+    case Qt::Key_Z:
+      static_pointer_cast<ZBPatch>(objects.at("ZB-Patch"))->projected = !static_pointer_cast<ZBPatch>(objects.at("ZB-Patch"))->projected;
+      static_pointer_cast<ZBPatch>(objects.at("ZB-Patch"))->initBlendFunctions();
+      static_pointer_cast<ZBPatch>(objects.at("ZB-Patch"))->updateBaseMesh();
+      displayMessage(QString("Zheng-Ball projection ") + (static_pointer_cast<ZBPatch>(objects.at("ZB-Patch"))->projected ? "ON" : "OFF"));
       update();
       break;
     default:

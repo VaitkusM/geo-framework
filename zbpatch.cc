@@ -7,7 +7,7 @@ ZBPatch::ZBPatch(std::string filename) : NPatch(filename)
   reload();
 }
 
-ZBPatch::ZBPatch(size_t num_sides, size_t depth) : NPatch("NOTHING.zb", num_sides), d_(depth), normalized(true)
+ZBPatch::ZBPatch(size_t num_sides, size_t depth, bool projected) : NPatch("NOTHING.zb", num_sides), d_(depth), normalized(true), projected(projected)
 {
   initDomain();
 
@@ -256,15 +256,52 @@ ZBPatch::getParameters(const BaseMesh::VertexHandle& vtx, Parameter& params) con
   //params.clear();
   //params.reserve(n_);
 
-  size_t resolution = 60;
-  const auto [i,j,k] = domain_mesh.data(vtx).spider_idx;
-  double u = (double)j / (double)resolution;
-  double v = j > 0 ? ((double)i / (double)j) : 0;
+  if(projected || n_ != 5) { // Iterative projection from [Gal-Salvi,23]
+    size_t resolution = 60;
+    const auto [i,j,k] = domain_mesh.data(vtx).spider_idx;
+    double u = (double)j / (double)resolution;
+    double v = j > 0 ? ((double)i / (double)j) : 0;
 
-  auto ep = affine(vertices_nd[prev(k)], v, vertices_nd[k]);
-  auto pt = affine(center, u, ep);
-  //params = pt;
-  params = project(n_, pt);
+    auto ep = affine(vertices_nd[prev(k)], v, vertices_nd[k]);
+    auto pt = affine(center, u, ep);
+    //params = pt;
+    params = project(n_, pt);
+  }
+  else if (!projected && n_ == 5) { // M-patch parameterization from [Karciauskas-Krasauskas,99]
+    for (size_t i = 0; i < n_; ++i) {
+      DoubleVector v(n_, 1);
+      v[prev(i)] = 0;
+      v[i] = 0;
+      vertices_nd[i] = v;
+    }
+    
+    auto uv = domain_mesh.point(vtx);
+    auto u = uv[0], v = uv[1];
+    DoubleVector ls(n_);
+    const double alpha = 2.0 * M_PI / double(n_);
+    const double cs = std::cos(alpha);
+    const double cs2 = std::cos(alpha / 2.0);
+    //const double C = std::pow(cs2, 2) / std::pow(cs, 2) - std::pow(u, 2) - std::pow(v, 2);
+    for (size_t i = 0; i < n_; ++i) {
+      ls[i] = -u * std::cos(alpha * i + alpha / 2.0) - v * std::sin(alpha * i + alpha / 2.0) + cs2;
+      //ls[i] /= (1 + std::cos(alpha/2.0));
+    }
+    DoubleVector bc(n_);
+    double pr = 3.0;//*(std::sqrt(5.0) - 1)/2.0;
+    for (size_t i = 0; i < n_; ++i) {
+      bc[i] = 1.0;
+      bc[i] *= ls[next(i)];
+      bc[i] *= ls[next(next(i))];
+      bc[i] *= ls[next(next(i))];
+      bc[i] *= ls[next(next(next(i)))];
+      bc[i] *= ((std::sqrt(5.0) - 1) / 2.0) * (-u*std::cos(i*alpha) - v*std::sin(i*alpha) + (1 + cs)/(2*cs));
+      pr *= ls[i];
+    }
+    bc.push_back(pr);
+    normalizeValues(bc);
+    vertices_nd.push_back(DoubleVector(n_, 2.0/3.0));
+    params = affine(vertices_nd, bc);
+  }
 }
 
 size_t
@@ -339,6 +376,19 @@ ZBPatch::affine(const DoubleVector& a, double x, const DoubleVector& b) {
   DoubleVector result(n);
   for (size_t i = 0; i < n; ++i)
     result[i] = a[i] * (1 - x) + b[i] * x;
+  return result;
+}
+
+ZBPatch::DoubleVector
+ZBPatch::affine(const std::vector<DoubleVector>& a, const DoubleVector& w) {
+  size_t n = a.front().size();
+  size_t m = w.size();
+  DoubleVector result(n, 0.0);
+  for (size_t i = 0; i < n; ++i) {
+    for(size_t j = 0; j < m; ++j) {
+      result[i] += a[j][i] * w[j];
+    }
+  }
   return result;
 }
 

@@ -9,7 +9,7 @@ public:
   using Ribbon = std::vector<std::vector<Vector> >;
 
   ZBPatch(std::string filename);
-  ZBPatch(size_t num_sides, size_t num_layers);
+  ZBPatch(size_t num_sides, size_t num_layers, bool projected = true);
   virtual ~ZBPatch();
 
   virtual void initBasicShape() override;
@@ -41,6 +41,7 @@ public:
   std::vector<Index> neighbors(const Index& si) const;
 
   static DoubleVector affine(const DoubleVector& a, double x, const DoubleVector& b);
+  static DoubleVector affine(const std::vector<DoubleVector> &a, const DoubleVector &w);
   double coefficient() const;
   static Parameter project(size_t n, const Parameter& p);
   void getParameters(const BaseMesh::VertexHandle& vtx, Parameter& params) const;
@@ -52,4 +53,5 @@ public:
   std::vector<Parameter> params_;
   std::vector<std::map<Index, double>> blend_functions_;
   bool normalized;
+  bool projected;
 };
